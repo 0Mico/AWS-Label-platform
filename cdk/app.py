@@ -20,7 +20,7 @@ CdkStack(app, "CdkStack",
     # Uncomment the next line if you know exactly what Account and Region you
     # want to deploy the stack to. */
 
-    env = cdk.Environment(account='927261121422', region='us-east-1'),
+    env = cdk.Environment(account='182717586751', region='eu-north-1'),
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )

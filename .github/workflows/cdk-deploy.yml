@@ -1,0 +1,52 @@
+name: AWS CDK Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '22'
+  WORKING_DIRECTORY: './cdk'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install CDK dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Validate CDK application
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: cdk synth
+
+      - name: Show differences
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: cdk diff --require-approval never
+
+      - name: Deploy CDK stack
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: cdk deploy --require-approval never
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
