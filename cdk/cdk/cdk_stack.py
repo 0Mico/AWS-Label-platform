@@ -27,7 +27,7 @@ class CdkStack(Stack):
             self,
             "ScraperImage",
             directory = scraper_path,
-            asset_name = "Scraper Image"
+            asset_name = "Scraper-Image"
         )
 
 
