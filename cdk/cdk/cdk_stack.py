@@ -4,6 +4,7 @@ from aws_cdk import (
     aws_s3 as S3,
     aws_dynamodb as DynamoDB,
     aws_ecr as ECR,
+    aws_ecr_assets as ECRAssets,
 )
 
 from aws_cdk import RemovalPolicy, Duration
@@ -13,6 +14,28 @@ class CdkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # Creating the image
+        self.scraper_image = ECRAssets.DockerImageAsset(
+            self,
+            "ScraperImage",
+            directory = "../scraper",
+            build_args = {
+                "tag": "scraper"
+            },
+            asset_name = "Scraper Image"
+        )
+
+
+        """
+        self.images_repository = ECR.Repository(
+            self,
+            "ImagesRepository",
+            repository_name = "job-scraper-images-repo",
+            removal_policy = RemovalPolicy.DESTROY,
+            image_scan_on_push = True  # Scan images for vulnerabilities on push
+        )
+        """
 
         self.job_posts_table = DynamoDB.TableV2(
             self,
