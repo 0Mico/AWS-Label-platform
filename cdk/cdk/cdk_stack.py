@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from aws_cdk import (
     Stack,
     aws_sqs as SQS,
@@ -10,6 +13,10 @@ from aws_cdk import (
 from aws_cdk import RemovalPolicy, Duration
 from constructs import Construct
 
+
+scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
+
+
 class CdkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -19,7 +26,7 @@ class CdkStack(Stack):
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
             "ScraperImage",
-            file = "../scraper",
+            directory = scraper_path,
             build_args = {
                 "tag": "scraper"
             },
