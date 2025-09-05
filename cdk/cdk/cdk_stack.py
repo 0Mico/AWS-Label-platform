@@ -19,7 +19,8 @@ class CdkStack(Stack):
             table_name = "job_posts_deduplication", 
             partition_key = DynamoDB.Attribute(name="job_id", type=DynamoDB.AttributeType.STRING),
             billing = DynamoDB.Billing.on_demand(),
-            point_in_time_recovery_specification = True,
+            point_in_time_recovery_specification = {
+                "point_in_time_recovery_enabled": True
+            },
             removal_policy = RemovalPolicy.DESTROY,
-            time_to_live_attribute = "ttl"
         )
