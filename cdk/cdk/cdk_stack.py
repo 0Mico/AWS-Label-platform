@@ -19,7 +19,7 @@ class CdkStack(Stack):
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
             "ScraperImage",
-            directory = "../scraper",
+            file = "../scraper",
             build_args = {
                 "tag": "scraper"
             },
