@@ -1,4 +1,5 @@
 import os
+import dotenv
 from pathlib import Path
 
 from aws_cdk import (
@@ -44,8 +45,8 @@ class CdkStack(Stack):
         self.job_posts_table = DynamoDB.TableV2(
             self,
             "JobPostsTable",
-            table_name = "job_posts_deduplication", 
-            partition_key = DynamoDB.Attribute(name="job_id", type=DynamoDB.AttributeType.STRING),
+            table_name = os.getenv("DYNAMODB_TABLE_NAME"), 
+            partition_key = DynamoDB.Attribute(name="Job_ID", type=DynamoDB.AttributeType.STRING),
             billing = DynamoDB.Billing.on_demand(),
             point_in_time_recovery_specification = {
                 "point_in_time_recovery_enabled": True
@@ -59,7 +60,7 @@ class CdkStack(Stack):
             queue = SQS.Queue(
                 self,
                 "DeadLetterQueue",
-                queue_name = "dead_letter_queue",
+                queue_name = os.getenv("DEAD_LETTER_QUEUE_NAME"),
                 visibility_timeout = Duration.seconds(180),
                 retention_period = Duration.days(14)
             )
@@ -68,7 +69,7 @@ class CdkStack(Stack):
         self.deduplicated_posts_queue = SQS.Queue(
             self,
             "DeduplicatedJobPostsQueue",
-            queue_name = "deduplicated_job_posts_queue",
+            queue_name = os.getenv("DEDUPLICATED_POSTS_QUEUE_NAME"),
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
