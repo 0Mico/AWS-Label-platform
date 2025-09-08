@@ -1,9 +1,14 @@
-import requests
+import os
 import json
 import time
+import urllib.parse
+
+import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-import urllib.parse
+import dotenv
+
+import awsutils as aws_ut
 
 # Make an http get request to the url. Returns the response content
 def _makeHTTPRequest(url: str):
@@ -89,30 +94,45 @@ def _modifyUrl(url: str, new_start: int):
 # Create a JSON object for each job_card received
 def _createJobObject(job_card: Tag):
     job = {}
-    job['Job_ID'] = _extactJobIDFromHTML(job_card)
+    job['job_id'] = _extactJobIDFromHTML(job_card)
     job['Title'] = _extractTitleFromHTML(job_card)
     job['Company_name'] = _extractCompanyNameFromHTML(job_card)
     job['Location'] = _extractJobLocationFromHTML(job_card)
     job['Pubblication_date'] = _extractPubblicationDateFromHTML(job_card)
 
-    response = _goToJobPage(job_link, job['Job_ID'])
+    response = _goToJobPage(os.getenv("SINGLE_JOB_BASE_LINK"), job['Job_ID'])
     soup = _organizeResponse(response)
  
     job['Description'] = _extractJobDescriptionFronHTML(soup)
+    job['Sent_to_queue'] = False
 
     return job
 
 # Make a json object for each job scraped and write it into a json file   
-def scrapeJobs(url: str, post_scraped: int):
+def scrapeJobs(url: str, post_scraped: int, db_table, sqs_queue_url):
     print(url) 
     response = _makeHTTPRequest(url)
-    soup =_organizeResponse(response)
+    soup = _organizeResponse(response)
     job_cards = _extractJobCardsFromHTML(soup)
     jobs_retrieved = len(job_cards)
     
     for card in job_cards:
         job = _createJobObject(card)
-        
+
+        result_job = aws_ut._checkIfJobExists(db_table, job['Job_ID']) # The response is a dict of jobs
+
+        if result_job is None:
+            aws_ut._saveJobToDynamoDB(db_table, job)
+            if job['Description'] != '':
+                aws_ut._writeJobToSQSQueue(sqs_queue_url, job)
+
+        else:
+            if result_job['Sent_to_queue']:
+                continue
+            else:
+                if job['Description'] != '':
+                    aws_ut._writeJobToSQSQueue(sqs_queue_url, job)
+
         with open("LinkedinJobPosts.json", "a") as file:
             json.dump(job, file, indent=4)
             file.write('\n')
@@ -127,14 +147,22 @@ def scrapeJobs(url: str, post_scraped: int):
         scrapeJobs(new_url, post_scraped)
 
 
-keywords = ['Data+Analyst', 'Data+Scientist', 'Cloud+Engineer', 'Devops', 'Frontend+Developer', 'Backend+Developer', 
-            'Software+Engineer', 'Fullstack+Developer', 'Mobile+Developer', 'Game+Developer', 'Artificial+Intelligence',
-            'Python+Developer']
+def main():
+    dotenv.load_dotenv()
 
-job_link = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
+    aws_ut._setupAWSSession()
+    db_table = aws_ut._retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME"))    
+    sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
 
-for k in keywords:
-    #keyword = k
-    start_url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={k}&geoId=103350119&start=0"
-    post_scraped = 0
-    scrapeJobs(start_url, post_scraped)
+    keywords = ['Data+Analyst', 'Data+Scientist', 'Cloud+Engineer', 'Devops', 'Frontend+Developer', 'Backend+Developer', 
+                'Software+Engineer', 'Fullstack+Developer', 'Mobile+Developer', 'Game+Developer', 'Artificial+Intelligence',
+                'Python+Developer']
+
+    for k in keywords:
+        start_url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={k}&geoId=103350119&start=0"
+        post_scraped = 0
+        scrapeJobs(start_url, post_scraped, db_table, sqs_queue_url)
+
+
+if __name__ == "__main__":
+    main()
