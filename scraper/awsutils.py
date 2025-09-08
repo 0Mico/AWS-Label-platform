@@ -1,6 +1,7 @@
 import os
 import boto3
 import hashlib
+import json
 from dotenv import load_dotenv
 
 
@@ -63,7 +64,7 @@ def _saveJobToDynamoDB(db_table, job: dict):
 def _updateJobInDynamoDB(db_table, job: dict):
     try:
         db_table.update_item(
-            Key = {'Job_ID': job['job_id']},
+            Key = {'Job_ID': job['Job_ID']},
             UpdateExpression = "SET Sent_to_queue = :val",
             ExpressionAttributeValues ={
                 ':val': job['Sent_to_queue']
@@ -79,8 +80,9 @@ def _updateJobInDynamoDB(db_table, job: dict):
 # Write the job in the SQS queue
 def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
     try:
-        job_md5 = hashlib.md5(str(job).encode()).hexdigest()
-        response = sqs_client.send_message(QueueUrl=sqs_queue, MessageBody=job)
+        job_string = json.dumps(job, ensure_ascii=False, default=str) # Send message method needs a string
+        job_md5 = hashlib.md5(str(job_string).encode()).hexdigest()
+        response = sqs_client.send_message(QueueUrl=sqs_queue, MessageBody=job_string)
         if response.get('MD5OfMessageBody') == job_md5:
             print("Hash corresponds")
         else:

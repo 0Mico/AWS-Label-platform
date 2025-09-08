@@ -94,7 +94,7 @@ def _modifyUrl(url: str, new_start: int):
 # Create a JSON object for each job_card received
 def _createJobObject(job_card: Tag):
     job = {}
-    job['job_id'] = _extactJobIDFromHTML(job_card)
+    job['Job_ID'] = _extactJobIDFromHTML(job_card)
     job['Title'] = _extractTitleFromHTML(job_card)
     job['Company_name'] = _extractCompanyNameFromHTML(job_card)
     job['Location'] = _extractJobLocationFromHTML(job_card)
@@ -144,7 +144,7 @@ def scrapeJobs(url: str, post_scraped: int, db_table, sqs_queue_url):
         #To not make the server reset the connection due to too much requests in the unit of time
         time.sleep(1)
 
-        scrapeJobs(new_url, post_scraped)
+        scrapeJobs(new_url, post_scraped, db_table, sqs_queue_url)
 
 
 def main():
