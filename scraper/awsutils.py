@@ -5,8 +5,7 @@ import json
 from dotenv import load_dotenv
 
 
-dynamodb = boto3.resource('dynamodb')
-sqs_client = boto3.client('sqs')
+load_dotenv()
 
 
 # Setup AWS session with credentials stored in .env file
@@ -15,6 +14,11 @@ def _setupAWSSession():
     os.environ['AWS_SECRET_ACCESS_KEY'] = os.getenv("AWS_SECRET_ACCESS_KEY")
     os.environ['AWS_DEFAULT_REGION'] = os.getenv("AWS_DEFAULT_REGION")
     return
+
+
+_setupAWSSession()
+dynamodb = boto3.resource('dynamodb')
+sqs_client = boto3.client('sqs')
 
 
 # Retrieve the DynamoDB table by table name
