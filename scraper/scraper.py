@@ -132,11 +132,13 @@ def scrapeJobs(url: str, post_scraped: int, db_table, sqs_queue_url):
             else:
                 if job['Description'] != '':
                     aws_ut._writeJobToSQSQueue(sqs_queue_url, job)
-
+        
+        """
         with open("LinkedinJobPosts.json", "a") as file:
             json.dump(job, file, indent=4)
             file.write('\n')
-
+        """
+        
     if jobs_retrieved > 0:
         post_scraped += jobs_retrieved
         new_url = _modifyUrl(url, post_scraped)
