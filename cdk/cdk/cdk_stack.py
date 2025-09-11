@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_ecr_assets as ECRAssets,
     aws_ecs as ECS,
     aws_ec2 as EC2,
+    aws_iam as IAM,
     aws_logs as logs
 )
 
@@ -25,13 +26,9 @@ class CdkStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # Create the scraper docker image
-        self.scraper_image = ECRAssets.DockerImageAsset(
-            self,
-            "ScraperImage",
-            directory = scraper_path,
-            asset_name = "Scraper-Image"
-        )
+
+
+        # ===== DYNAMO DB =====
         
 
         # Create deduplication table
@@ -47,6 +44,11 @@ class CdkStack(Stack):
             removal_policy = RemovalPolicy.DESTROY,
             time_to_live_attribute = "ttl"
         )
+
+
+
+        # ===== SQS QUEUES =====
+
 
         # Create dead letter queue
         self.dead_letter_queue = SQS.DeadLetterQueue(
@@ -72,17 +74,54 @@ class CdkStack(Stack):
 
 
 
+        # ===== ECS CLUSTER =====
 
+        # Create role for ECS task execution
+        execution_role = IAM.Role(
+            self,
+            "ScraperExecutionRole",
+            assumed_by = IAM.ServicePrincipal("ecs-tasks.amazonaws.com"),
+            managed_policies = [
+                IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonECSTaskExecutionRolePolicy")
+            ]
+        )
 
+        # Create role for ECS container
+        task_role = IAM.Role(
+            self,
+            "ScraperTaskRole",
+            assumed_by = IAM.ServicePrincipal("ecs-tasks.amazonaws.com")
+        )
 
-        # 2. Search for the aws account default vpc
+        # Create role for EC2 instances
+        ec2_role = IAM.Role(
+            self,
+            "EcsInstanceRole",
+            assumed_by = IAM.ServicePrincipal("ec2.amazonaws.com"),
+            managed_policies = [
+                IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role")
+            ]
+        )
+
+        
+        # Grant permissions to access DynamoDB table
+        self.job_posts_table.grant_read_write_data(task_role)
+
+        # Grant permissions to access SQS queues
+        self.deduplicated_posts_queue.grant_send_messages(task_role)
+        self.deduplicated_posts_queue.grant_consume_messages(task_role)
+        self.dead_letter_queue.queue.grant_send_messages(task_role)
+        self.dead_letter_queue.queue.grant_consume_messages(task_role)
+
+        
+        # Search for the aws account default vpc
         vpc = EC2.Vpc.from_lookup(
             self, 
             "DefaultVPC",
             is_default = True,
         )
         
-        # 3. Create ECS Cluster (logical grouping)
+        # Create ECS Cluster in the vpc
         cluster = ECS.Cluster(
             self,
             "LabelAppCluster",
@@ -90,41 +129,57 @@ class CdkStack(Stack):
             vpc = vpc
         )
         
-        # 4. Add EC2 Capacity to the cluster
+        # Add EC2 Capacity to the cluster
         cluster.add_capacity(
             "ScraperCapacity",
             instance_type = EC2.InstanceType.of(
-                EC2.InstanceClass.T3,    # Instance family (t3 = burstable performance)
-                EC2.InstanceSize.SMALL   # Instance size (micro = smallest)
+                EC2.InstanceClass.T3,    
+                EC2.InstanceSize.SMALL   
             ),
             allow_all_outbound = True,
             min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            desired_capacity = 1  # How many instances to start with
+            desired_capacity = 0,  # How many instances to start with
+            role = ec2_role
         )
         
-        # 5. Create Task Definition (the "recipe" for your container)
+        # Create Task Definition
         task_definition = ECS.Ec2TaskDefinition(
             self,
             "ScraperTaskDefinition",
-            family = "scraper-task"  # Name for this task definition family
+            family = "scraper-task",  
+            execution_role = execution_role,
+            task_role = task_role
         )
         
-        # 6. Add your container to the task definition
+        # Create the scraper docker image
+        self.scraper_image = ECRAssets.DockerImageAsset(
+            self,
+            "ScraperImage",
+            directory = scraper_path,
+            asset_name = "Scraper-Image"
+        )
+
+        # Add container to the task definition
         container = task_definition.add_container(
             "ScraperContainer",
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
-            memory_reservation_mib = 1024,  # Reserve 1024 MB RAM
-            cpu = 1024,                      # Reserve 1024 CPU units
+            memory_reservation_mib = 1024,  
+            cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
                 stream_prefix = "scraper-logs",
                 log_retention = logs.RetentionDays.ONE_WEEK,
                 mode = ECS.AwsLogDriverMode.NON_BLOCKING
             ),
-
+            environment = {
+                "AWS_DEFAULT_REGION": self.region,
+                "DYNAMODB_TABLE_NAME": self.job_posts_table.table_name,
+                "DEDUPLICATED_POSTS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
+                "DEAD_LETTER_QUEUE_NAME": self.dead_letter_queue.queue.queue_name,
+            }
         )
 
-        # 8. Create ECS Service (ensures containers keep running)
+        # Create ECS Service 
         service = ECS.Ec2Service(
             self,
             "LabelAppService",
