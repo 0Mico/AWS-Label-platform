@@ -100,7 +100,7 @@ class CdkStack(Stack):
             allow_all_outbound = True,
             min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            desired_capacity = 1  # How many instances to start with
+            desired_capacity = 0  # How many instances to start with
         )
         
         # 5. Create Task Definition (the "recipe" for your container)
@@ -123,7 +123,7 @@ class CdkStack(Stack):
             "LabelAppService",
             cluster = cluster,
             task_definition = task_definition,
-            desired_count = 1,  # How many containers to run
+            desired_count = 0,  # How many containers to run
             service_name = "my-scraper-service"
         )
 
