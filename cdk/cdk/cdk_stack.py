@@ -7,10 +7,10 @@ from aws_cdk import (
     aws_sqs as SQS,
     aws_s3 as S3,
     aws_dynamodb as DynamoDB,
-    aws_ecr as ECR,
     aws_ecr_assets as ECRAssets,
     aws_ecs as ECS,
     aws_ec2 as EC2,
+    aws_logs as logs
 )
 
 from aws_cdk import RemovalPolicy, Duration
@@ -116,6 +116,12 @@ class CdkStack(Stack):
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
             memory_reservation_mib = 1024,  # Reserve 1024 MB RAM
             cpu = 1024,                      # Reserve 1024 CPU units
+            logging = ECS.LogDrivers.aws_logs(
+                stream_prefix = "scraper-logs",
+                log_retention = logs.RetentionDays.ONE_WEEK,
+                mode = ECS.AwsLogDriverMode.NON_BLOCKING
+            ),
+
         )
 
         # 8. Create ECS Service (ensures containers keep running)
