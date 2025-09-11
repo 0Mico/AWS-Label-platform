@@ -26,7 +26,7 @@ class CdkStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-
+        dotenv.load_dotenv()
 
         # ===== DYNAMO DB =====
         
@@ -139,7 +139,7 @@ class CdkStack(Stack):
             allow_all_outbound = True,
             min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            desired_capacity = 0  # How many instances to start with
+            #desired_capacity = 0  # How many instances to start with
             #role = ec2_role
         )
         
@@ -152,6 +152,7 @@ class CdkStack(Stack):
             #task_role = task_role
         )
         
+        """
         # Create the scraper docker image
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
@@ -159,11 +160,12 @@ class CdkStack(Stack):
             directory = scraper_path,
             asset_name = "Scraper-Image"
         )
+        """
 
         # Add container to the task definition
         container = task_definition.add_container(
             "ScraperContainer",
-            image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
+            image = ECS.ContainerImage.from_docker_image_asset(os.getenv("IMAGE_URI")),
             memory_reservation_mib = 1024,  
             cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
