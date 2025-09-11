@@ -115,6 +115,7 @@ class CdkStack(Stack):
             "ScraperContainer",
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
             memory_reservation_mib = 1024,  # Reserve 1024 MB RAM
+            cpu = 1024,                      # Reserve 1024 CPU units
         )
 
         # 8. Create ECS Service (ensures containers keep running)
