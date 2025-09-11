@@ -123,7 +123,7 @@ class CdkStack(Stack):
             "LabelAppService",
             cluster = cluster,
             task_definition = task_definition,
-            desired_count = 0,  # How many containers to run
+            desired_count = 1,  # How many containers to run
             service_name = "my-scraper-service"
         )
 
