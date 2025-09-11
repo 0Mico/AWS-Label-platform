@@ -75,7 +75,7 @@ class CdkStack(Stack):
 
 
         # ===== ECS CLUSTER =====
-
+        """
         # Create role for ECS task execution
         execution_role = IAM.Role(
             self,
@@ -112,8 +112,8 @@ class CdkStack(Stack):
         self.deduplicated_posts_queue.grant_consume_messages(task_role)
         self.dead_letter_queue.queue.grant_send_messages(task_role)
         self.dead_letter_queue.queue.grant_consume_messages(task_role)
-
-        
+        """
+    
         # Search for the aws account default vpc
         vpc = EC2.Vpc.from_lookup(
             self, 
@@ -139,17 +139,17 @@ class CdkStack(Stack):
             allow_all_outbound = True,
             min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            desired_capacity = 0,  # How many instances to start with
-            role = ec2_role
+            desired_capacity = 0  # How many instances to start with
+            #role = ec2_role
         )
         
         # Create Task Definition
         task_definition = ECS.Ec2TaskDefinition(
             self,
             "ScraperTaskDefinition",
-            family = "scraper-task",  
-            execution_role = execution_role,
-            task_role = task_role
+            family = "scraper-task"  
+            #execution_role = execution_role,
+            #task_role = task_role
         )
         
         # Create the scraper docker image
