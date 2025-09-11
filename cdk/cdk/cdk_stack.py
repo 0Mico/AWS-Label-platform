@@ -95,12 +95,12 @@ class CdkStack(Stack):
             "ScraperCapacity",
             instance_type = EC2.InstanceType.of(
                 EC2.InstanceClass.T3,    # Instance family (t3 = burstable performance)
-                EC2.InstanceSize.MICRO   # Instance size (micro = smallest)
+                EC2.InstanceSize.SMALL   # Instance size (micro = smallest)
             ),
             allow_all_outbound = True,
             min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            desired_capacity = 0  # How many instances to start with
+            desired_capacity = 1  # How many instances to start with
         )
         
         # 5. Create Task Definition (the "recipe" for your container)
@@ -114,7 +114,7 @@ class CdkStack(Stack):
         container = task_definition.add_container(
             "ScraperContainer",
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
-            memory_reservation_mib = 512,  # Reserve 512 MB RAM
+            memory_reservation_mib = 1024,  # Reserve 1024 MB RAM
         )
 
         # 8. Create ECS Service (ensures containers keep running)
