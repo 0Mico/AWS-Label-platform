@@ -9,6 +9,7 @@ from aws_cdk import (
     aws_dynamodb as DynamoDB,
     aws_ecr_assets as ECRAssets,
     aws_ecs as ECS,
+    aws_ecr as ECR,
     aws_ec2 as EC2,
     aws_iam as IAM,
     aws_logs as logs
@@ -162,10 +163,16 @@ class CdkStack(Stack):
         )
         """
 
+        existing_repo = ECR.Repository.from_repository_name(
+            self,
+            "ExistingScraperRepo",
+            repository_name = os.getenv("ECR_REPOSITORY_NAME")
+        )
+
         # Add container to the task definition
         container = task_definition.add_container(
             "ScraperContainer",
-            image = ECS.ContainerImage.from_docker_image_asset(os.getenv("IMAGE_URI")),
+            image = ECS.ContainerImage.from_ecr_repository(existing_repo, tag=os.getenv("ECR_IMAGE_TAG")),
             memory_reservation_mib = 1024,  
             cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
