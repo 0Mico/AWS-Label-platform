@@ -98,7 +98,7 @@ class CdkStack(Stack):
                 EC2.InstanceSize.SMALL   # Instance size (micro = smallest)
             ),
             allow_all_outbound = True,
-            min_capacity = 1,     # Minimum number of EC2 instances
+            min_capacity = 0,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
             desired_capacity = 1  # How many instances to start with
         )
