@@ -168,7 +168,7 @@ class CdkStack(Stack):
         # Add container to the task definition
         container = task_definition.add_container(
             "ScraperContainer",
-            image = ECS.ContainerImage.from_ecr_repository("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
+            image = ECS.ContainerImage.from_registry("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
             memory_reservation_mib = 1024,  
             cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
