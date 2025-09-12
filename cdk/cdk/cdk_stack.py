@@ -159,7 +159,6 @@ class CdkStack(Stack):
         )
         
         
-        
         # Create the scraper docker image
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
@@ -170,7 +169,7 @@ class CdkStack(Stack):
         
 
         # Add container to the task definition
-        container = task_definition.add_container(
+        task_definition.add_container(
             "ScraperContainer",
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
             #image = ECS.ContainerImage.from_registry("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
