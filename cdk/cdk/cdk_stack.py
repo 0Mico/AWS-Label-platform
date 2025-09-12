@@ -20,14 +20,16 @@ from constructs import Construct
 
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
-
+env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        dotenv.load_dotenv()
+
+        dotenv.load_dotenv(env_path)
+
 
         # ===== DYNAMO DB =====
         
@@ -154,6 +156,7 @@ class CdkStack(Stack):
         )
         
         
+        """
         # Create the scraper docker image
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
@@ -161,7 +164,7 @@ class CdkStack(Stack):
             directory = scraper_path,
             asset_name = "Scraper-Image"
         )
-        
+        """
 
         # Add container to the task definition
         container = task_definition.add_container(
