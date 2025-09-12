@@ -78,7 +78,8 @@ class CdkStack(Stack):
 
 
         # ===== ECS CLUSTER =====
-        """
+        
+        
         # Create role for ECS task execution
         execution_role = IAM.Role(
             self,
@@ -88,7 +89,8 @@ class CdkStack(Stack):
                 IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonECSTaskExecutionRolePolicy")
             ]
         )
-
+        
+        
         # Create role for ECS container
         task_role = IAM.Role(
             self,
@@ -96,6 +98,8 @@ class CdkStack(Stack):
             assumed_by = IAM.ServicePrincipal("ecs-tasks.amazonaws.com")
         )
 
+
+        """
         # Create role for EC2 instances
         ec2_role = IAM.Role(
             self,
@@ -105,7 +109,7 @@ class CdkStack(Stack):
                 IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role")
             ]
         )
-
+        """
         
         # Grant permissions to access DynamoDB table
         self.job_posts_table.grant_read_write_data(task_role)
@@ -115,7 +119,7 @@ class CdkStack(Stack):
         self.deduplicated_posts_queue.grant_consume_messages(task_role)
         self.dead_letter_queue.queue.grant_send_messages(task_role)
         self.dead_letter_queue.queue.grant_consume_messages(task_role)
-        """
+        
     
         # Search for the aws account default vpc
         vpc = EC2.Vpc.from_lookup(
@@ -149,13 +153,13 @@ class CdkStack(Stack):
         task_definition = ECS.Ec2TaskDefinition(
             self,
             "ScraperTaskDefinition",
-            family = "scraper-task"  
-            #execution_role = execution_role,
-            #task_role = task_role
+            family = "scraper-task",
+            execution_role = execution_role,  
+            task_role = task_role
         )
         
         
-        """
+        
         # Create the scraper docker image
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
@@ -163,12 +167,13 @@ class CdkStack(Stack):
             directory = scraper_path,
             asset_name = "Scraper-Image"
         )
-        """
+        
 
         # Add container to the task definition
         container = task_definition.add_container(
             "ScraperContainer",
-            image = ECS.ContainerImage.from_registry("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
+            image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
+            #image = ECS.ContainerImage.from_registry("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
             memory_reservation_mib = 1024,  
             cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
