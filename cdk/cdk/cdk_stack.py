@@ -86,7 +86,8 @@ class CdkStack(Stack):
             "ScraperExecutionRole",
             assumed_by = IAM.ServicePrincipal("ecs-tasks.amazonaws.com"),
             managed_policies = [
-                IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonECSTaskExecutionRolePolicy")
+                IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonECSTaskExecutionRolePolicy"),
+                IAM.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2ContainerRegistryReadOnly")
             ]
         )
         
@@ -194,7 +195,7 @@ class CdkStack(Stack):
             "LabelAppService",
             cluster = cluster,
             task_definition = task_definition,
-            desired_count = 1,  # How many containers to run
+            desired_count = 0,  # How many containers to run
             service_name = "my-scraper-service"
         )
 
