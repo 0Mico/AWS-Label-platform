@@ -184,8 +184,9 @@ class CdkStack(Stack):
             environment = {
                 "AWS_DEFAULT_REGION": self.region,
                 "DYNAMODB_TABLE_NAME": self.job_posts_table.table_name,
-                "DEDUPLICATED_POSTS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
+                "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
                 "DEAD_LETTER_QUEUE_NAME": self.dead_letter_queue.queue.queue_name,
+                "SINGLE_JOB_BASE_LINK": "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
             }
         )
 
