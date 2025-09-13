@@ -198,3 +198,4 @@ class CdkStack(Stack):
                 #"SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
             }
         )
+        self.deduplicated_posts_queue.grant_consume_messages(preprocessing_lambda)
