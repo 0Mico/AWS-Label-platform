@@ -12,7 +12,8 @@ from aws_cdk import (
     aws_ecr as ECR,
     aws_ec2 as EC2,
     aws_iam as IAM,
-    aws_logs as logs
+    aws_logs as logs,
+    aws_lambda as LAMBDA,
 )
 
 from aws_cdk import RemovalPolicy, Duration
@@ -33,7 +34,6 @@ class CdkStack(Stack):
 
         # ===== DYNAMO DB =====
         
-
         # Create deduplication table
         self.job_posts_table = DynamoDB.TableV2(
             self,
@@ -51,7 +51,6 @@ class CdkStack(Stack):
 
 
         # ===== SQS QUEUES =====
-
 
         # Create dead letter queue
         self.dead_letter_queue = SQS.DeadLetterQueue(
@@ -79,7 +78,6 @@ class CdkStack(Stack):
 
         # ===== ECS CLUSTER =====
         
-        
         # Create role for ECS task execution
         execution_role = IAM.Role(
             self,
@@ -91,37 +89,22 @@ class CdkStack(Stack):
             ]
         )
         
-        
         # Create role for ECS container
         task_role = IAM.Role(
             self,
             "ScraperTaskRole",
             assumed_by = IAM.ServicePrincipal("ecs-tasks.amazonaws.com")
         )
-
-
-        """
-        # Create role for EC2 instances
-        ec2_role = IAM.Role(
-            self,
-            "EcsInstanceRole",
-            assumed_by = IAM.ServicePrincipal("ec2.amazonaws.com"),
-            managed_policies = [
-                IAM.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerServiceforEC2Role")
-            ]
-        )
-        """
         
         # Grant permissions to access DynamoDB table
         self.job_posts_table.grant_read_write_data(task_role)
 
         # Grant permissions to access SQS queues
         self.deduplicated_posts_queue.grant_send_messages(task_role)
-        self.deduplicated_posts_queue.grant_consume_messages(task_role)
         self.dead_letter_queue.queue.grant_send_messages(task_role)
-        self.dead_letter_queue.queue.grant_consume_messages(task_role)
+        #self.deduplicated_posts_queue.grant_consume_messages(task_role)
+        #self.dead_letter_queue.queue.grant_consume_messages(task_role)
         
-    
         # Search for the aws account default vpc
         vpc = EC2.Vpc.from_lookup(
             self, 
@@ -159,7 +142,6 @@ class CdkStack(Stack):
             task_role = task_role
         )
         
-        
         # Create the scraper docker image
         self.scraper_image = ECRAssets.DockerImageAsset(
             self,
@@ -168,7 +150,6 @@ class CdkStack(Stack):
             asset_name = "Scraper-Image"
         )
         
-
         # Add container to the task definition
         task_definition.add_container(
             "ScraperContainer",
@@ -200,3 +181,16 @@ class CdkStack(Stack):
             service_name = "my-scraper-service"
         )
 
+
+        # ===== LAMBDA FUNCTIONS =====
+
+        # Create lambda function to receive messages from the deduplicated queue
+        preprocessing_lambda = LAMBDA.Function(
+            self,
+            "PreprocessingJobPosts",
+            runtime = LAMBDA.Runtime.PYTHON_3_12,
+            code = LAMBDA.Code.from_asset("lambda"),
+            handler = "preprocessing.lambda_handler",
+            dead_letter_queue = self.dead_letter_queue,
+            function_name = "PreprocessingJobPosts"
+        )
