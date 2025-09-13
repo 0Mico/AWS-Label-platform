@@ -9,7 +9,6 @@ from aws_cdk import (
     aws_dynamodb as DynamoDB,
     aws_ecr_assets as ECRAssets,
     aws_ecs as ECS,
-    aws_ecr as ECR,
     aws_ec2 as EC2,
     aws_iam as IAM,
     aws_logs as logs,
