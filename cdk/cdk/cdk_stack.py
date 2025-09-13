@@ -208,7 +208,7 @@ class CdkStack(Stack):
         self.sns_topic.add_subscription(
             sns_subscriptions.SqsSubscription(
                 self.preprocessed_job_posts_queue,
-                dead_letter_queue = self.dead_letter_queue,
+                dead_letter_queue = self.dead_letter_queue.queue,
                 raw_message_delivery = True
             )
         )
