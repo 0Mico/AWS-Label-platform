@@ -114,8 +114,6 @@ class CdkStack(Stack):
         # Grant permissions to access SQS queues
         self.deduplicated_posts_queue.grant_send_messages(task_role)
         self.dead_letter_queue.queue.grant_send_messages(task_role)
-        #self.deduplicated_posts_queue.grant_consume_messages(task_role)
-        #self.dead_letter_queue.queue.grant_consume_messages(task_role)
         
         # Search for the aws account default vpc
         vpc = EC2.Vpc.from_lookup(
@@ -228,7 +226,7 @@ class CdkStack(Stack):
             function_name = "PreprocessingJobPosts",
             environment = {
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
-                "SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
+                "SNS_TOPIC_ARN": self.sns_topic.topic_arn
             }
         )
         self.deduplicated_posts_queue.grant_consume_messages(preprocessing_lambda)
