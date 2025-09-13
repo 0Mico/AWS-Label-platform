@@ -1,5 +1,5 @@
 import os
-import scraper.awsutils as aws_ut
+import awsutils as aws_ut
 
 
 sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
