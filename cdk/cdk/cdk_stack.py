@@ -21,6 +21,7 @@ from constructs import Construct
 
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
+lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
 env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
@@ -189,7 +190,7 @@ class CdkStack(Stack):
             self,
             "PreprocessingJobPosts",
             runtime = LAMBDA.Runtime.PYTHON_3_12,
-            code = LAMBDA.Code.from_asset("lambda"),
+            code = LAMBDA.Code.from_asset(lambda_path),
             handler = "preprocessing.lambda_handler",
             dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "PreprocessingJobPosts"
