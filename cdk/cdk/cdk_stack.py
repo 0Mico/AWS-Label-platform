@@ -4,15 +4,17 @@ from pathlib import Path
 
 from aws_cdk import (
     Stack,
-    aws_sqs as SQS,
-    aws_s3 as S3,
-    aws_dynamodb as DynamoDB,
     aws_ecr_assets as ECRAssets,
-    aws_ecs as ECS,
-    aws_ec2 as EC2,
-    aws_iam as IAM,
-    aws_logs as logs,
+    aws_dynamodb as DynamoDB,
     aws_lambda as LAMBDA,
+    aws_iam as IAM,
+    aws_ec2 as EC2,
+    aws_ecs as ECS,
+    aws_sqs as SQS,
+    aws_sns as SNS,
+    aws_s3 as S3,
+    aws_logs as logs,
+    aws_sns_subscriptions as sns_subscriptions
 )
 
 from aws_cdk import RemovalPolicy, Duration
@@ -64,11 +66,21 @@ class CdkStack(Stack):
             )
         )
 
-        # Create job posts queue
+        # Create job posts queue for deduplicated posts
         self.deduplicated_posts_queue = SQS.Queue(
             self,
             "DeduplicatedJobPostsQueue",
             queue_name = os.getenv("DEDUPLICATED_POSTS_QUEUE_NAME"),
+            visibility_timeout = Duration.seconds(180),
+            retention_period = Duration.days(14),
+            dead_letter_queue = self.dead_letter_queue
+        )
+
+        # Create preprocessed job posts queue
+        self.preprocessed_job_posts_queue = SQS.Queue(
+            self,
+            "PreprocessedJobPostsQueue",
+            queue_name = os.getenv("PREPROCESSED_POSTS_QUEUE_NAME"),
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
@@ -182,6 +194,27 @@ class CdkStack(Stack):
         )
 
 
+
+        # ===== SNS TOPIC =====
+
+        # Create SNS topic where lambda function will write to
+        self.sns_topic = SNS.Topic(
+            self,
+            "PreprocessedJobPostsTopic",
+            topic_name = os.getenv("SNS_TOPIC_NAME")
+        )
+
+        # Subscribe the preprocessed job posts SQS queue to the SNS topic
+        self.sns_topic.add_subscription(
+            sns_subscriptions.SqsSubscription(
+                self.preprocessed_job_posts_queue,
+                dead_letter_queue = self.dead_letter_queue,
+                raw_message_delivery = True
+            )
+        )
+
+
+
         # ===== LAMBDA FUNCTIONS =====
 
         # Create lambda function to receive messages from the deduplicated queue
@@ -199,3 +232,21 @@ class CdkStack(Stack):
             }
         )
         self.deduplicated_posts_queue.grant_consume_messages(preprocessing_lambda)
+        self.sns_topic.grant_publish(preprocessing_lambda)
+
+
+
+        # ===== S3 BUCKET =====
+
+        # Create S3 bucket for job posts
+        self.s3_bucket = S3.Bucket(
+            self,
+            "LabelAppBucket",
+            bucket_name = os.getenv("S3_BUCKET_NAME"),
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            block_public_access = S3.BlockPublicAccess.BLOCK_ALL,
+        )
+
+
+        

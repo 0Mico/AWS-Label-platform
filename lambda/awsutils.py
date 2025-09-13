@@ -39,6 +39,7 @@ def _saveJobToDynamoDB(db_table, job: dict):
     
     except Exception as e:
         print(f"Error saving job to DynamoDB: {e}")
+        return None
 
     
 # Update the job adding the description field
@@ -56,6 +57,7 @@ def _updateJobInDynamoDB(db_table, job: dict):
 
     except Exception as e:
         print(f"Error updating job in DynamoDB: {e}")
+        return None
 
 
 # Check if the job with the id received already exists in the table passed
@@ -93,7 +95,7 @@ def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
 
     except Exception as e:
         print(f"Error sending message to SQS: {e}")
-        return
+        return None
     
     job['Sent_to_queue'] = True
     _updateJobInDynamoDB(_retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME")), job)
@@ -128,4 +130,13 @@ def _deleteJobFromSQSQueue(queue_url: str, receipt_handle: str, sqs_client=sqs_c
 
 
 def _writeJobToSNSTopic(sns_topic_arn: str, job: str, sns_client=sns_client):
-    return
+    try:
+        response = sns_client.publish(
+            TopicArn = sns_topic_arn,
+            Message = job
+        )
+        return
+    
+    except Exception as e:
+        print(f"Error publishing message to SNS: {e}")
+        return None
