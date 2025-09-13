@@ -24,7 +24,7 @@ def lambda_handler(event, context):
                 continue
             
             # aws_ut._writeJobToSNSTopic(sns_topic_arn, job)
-            
+            print(f"Processing job: {job}, receipt handle: {receipt_handle}")
             aws_ut._deleteJobFromSQSQueue(sqs_queue_url, receipt_handle)
             print("Message processed and deleted from the queue")
 
