@@ -2,33 +2,6 @@ import os
 import boto3
 import hashlib
 import json
-from dotenv import load_dotenv
-
-
-load_dotenv()
-
-
-# Setup AWS credentials: use .env file if running locally. Otherwise, use IAM role credentials (ECS environment)
-def _setupAWSSession():
-    aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
-    aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_DEFAULT_REGION", "eu-north-1")
-
-    if aws_access_key and aws_secret_key:
-        # Running locally with explicit credentials from .env
-        print("Using explicit AWS credentials from .env file")
-        os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key
-        os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_key
-        os.environ['AWS_DEFAULT_REGION'] = aws_region
-    else:
-        # Running in ECS - use IAM role credentials (automatic)
-        print("Using IAM role credentials (ECS environment)")
-        # Ensure region is set
-        if not os.environ.get('AWS_DEFAULT_REGION'):
-            os.environ['AWS_DEFAULT_REGION'] = aws_region
-
-
-_setupAWSSession()
 
 
 try:
