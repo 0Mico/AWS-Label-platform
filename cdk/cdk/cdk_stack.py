@@ -228,7 +228,7 @@ class CdkStack(Stack):
             function_name = "PreprocessingJobPosts",
             environment = {
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
-                #"SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
+                "SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
             }
         )
         self.deduplicated_posts_queue.grant_consume_messages(preprocessing_lambda)
