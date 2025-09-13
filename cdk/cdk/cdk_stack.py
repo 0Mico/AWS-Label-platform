@@ -191,6 +191,6 @@ class CdkStack(Stack):
             runtime = LAMBDA.Runtime.PYTHON_3_12,
             code = LAMBDA.Code.from_asset("lambda"),
             handler = "preprocessing.lambda_handler",
-            dead_letter_queue = self.dead_letter_queue,
+            dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "PreprocessingJobPosts"
         )
