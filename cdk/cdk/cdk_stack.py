@@ -194,7 +194,7 @@ class CdkStack(Stack):
             dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "PreprocessingJobPosts",
             environment = {
-                "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
+                "DEDUPLICATED_JOBS_QUEUE_NAME": os.getenv("DEDUPLICATED_POSTS_QUEUE_NAME"),
                 #"SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
             }
         )
