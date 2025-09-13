@@ -2,11 +2,10 @@ import os
 import awsutils as aws_ut
 
 
-sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
-sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
-
-
 def lambda_handler(event, context):
+    sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
+    sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
+    
     if not sqs_queue_url:
         print("SQS queue URL not found")
         return

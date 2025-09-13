@@ -10,7 +10,6 @@ try:
     sqs_client = boto3.client('sqs')
     sns_client = boto3.client('sns')
     
-    # Test the connection
     session = boto3.Session()
     print(f"AWS session region: {session.region_name}")
     print("AWS services initialized successfully")
