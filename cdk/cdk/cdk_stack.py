@@ -193,5 +193,9 @@ class CdkStack(Stack):
             code = LAMBDA.Code.from_asset(lambda_path),
             handler = "preprocessing.lambda_handler",
             dead_letter_queue = self.dead_letter_queue.queue,
-            function_name = "PreprocessingJobPosts"
+            function_name = "PreprocessingJobPosts",
+            environment = {
+                "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
+                "SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN")
+            }
         )

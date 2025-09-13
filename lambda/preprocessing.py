@@ -1,10 +1,5 @@
-import boto3
 import os
-import dotenv
 import scraper.awsutils as aws_ut
-
-
-dotenv.load_dotenv()
 
 
 sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
