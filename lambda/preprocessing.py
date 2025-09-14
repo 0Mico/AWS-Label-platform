@@ -1,4 +1,5 @@
 import os
+import json
 import awsutils as aws_ut
 
 
@@ -23,7 +24,19 @@ def lambda_handler(event, context):
                 print("Message body or receipt handle is empty")
                 continue
             
-            aws_ut._writeJobToSNSTopic(sns_topic_arn, job)
+            try:
+                job_data = json.loads(job)
+                filtered_job = {
+                    "Job_ID": job_data.get("Job_ID"),
+                    "Description": job_data.get("Description"),
+                }
+                filtered_json_string = json.dumps(filtered_job)
+                
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {e}")
+                continue
+
+            aws_ut._writeJobToSNSTopic(sns_topic_arn, filtered_json_string)
             
             aws_ut._deleteJobFromSQSQueue(sqs_queue_url, receipt_handle)
             
