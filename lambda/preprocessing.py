@@ -31,7 +31,7 @@ def lambda_handler(event, context):
                     "Title": job_data.get("Title"),
                     "Description": job_data.get("Description"),
                 }
-                filtered_json_string = json.dumps(filtered_job)
+                filtered_json_string = json.dumps(filtered_job, ensure_ascii=False)
                 
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")

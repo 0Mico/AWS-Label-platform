@@ -113,7 +113,12 @@ def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
     try:
         job_string = json.dumps(job, ensure_ascii=False, default=str) # Send message method needs a string
         job_md5 = hashlib.md5(str(job_string).encode()).hexdigest()
-        response = sqs_client.send_message(QueueUrl=sqs_queue, MessageBody=job_string)
+        
+        response = sqs_client.send_message(
+            QueueUrl=sqs_queue, 
+            MessageBody=job_string
+        )
+
         if response.get('MD5OfMessageBody') == job_md5:
             print("Hash corresponds")
         else:
@@ -125,35 +130,4 @@ def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
     
     job['Sent_to_queue'] = True
     _updateJobInDynamoDB(_retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME")), job)
-    return
-
-
-def _readJobFromSQSQueue(queue_url: str, sqs_client=sqs_client):
-    try:
-        response = sqs_client.receive_message(
-            QueueUrl = queue_url,
-            MaxNumberOfMessages = 5,
-        )
-        return response.get('Messages', [])
-    
-    except Exception as e:
-        print(f"Error reading message from SQS: {e}")
-        return None
-
-
-def _deleteJobFromSQSQueue(queue_url: str, receipt_handle: str, sqs_client=sqs_client):
-    try:
-        sqs_client.delete_message(
-            QueueUrl = queue_url,
-            ReceiptHandle = receipt_handle
-        )
-        return
-    
-    except Exception as e:
-        print(f"Error deleting message from SQS: {e}")
-        return None
-
-
-
-def _writeJobToSNSTopic(sns_topic_arn: str, job: str, sns_client=sns_client):
     return

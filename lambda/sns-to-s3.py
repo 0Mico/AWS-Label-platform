@@ -22,9 +22,10 @@ def lambda_handler(event, context):
             s3_key = f"Preprocessed-posts/{filename}.json"
 
             aws_ut._saveJobToS3Bucket(s3_bucket_name, sns_message, s3_key)
+
+        return
+
     
     except Exception as e:
         print(f"Error processing SNS message: {e}")
         return None
-    
-    return
