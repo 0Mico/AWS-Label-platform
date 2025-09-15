@@ -164,7 +164,6 @@ class CdkStack(Stack):
         task_definition.add_container(
             "ScraperContainer",
             image = ECS.ContainerImage.from_docker_image_asset(self.scraper_image),
-            #image = ECS.ContainerImage.from_registry("182717586751.dkr.ecr.eu-north-1.amazonaws.com/cdk-hnb659fds-container-assets-182717586751-eu-north-1:699024ec6ffa942f5262b08858e4259e340384ef19cb9538cfc12932a553b23c"),  # Use the image from ECR
             memory_reservation_mib = 1024,  
             cpu = 1024,                      
             logging = ECS.LogDrivers.aws_logs(
@@ -211,6 +210,28 @@ class CdkStack(Stack):
             )
         )
 
+        # Subscribe the lambda function to send job posts to s3
+        self.sns_topic.add_subscription(
+            sns_subscriptions.LambdaSubscription(
+                sns_to_s3,
+                raw_message_delivery = True
+            )
+        )
+
+
+
+        # ===== S3 BUCKET =====
+
+        # Create S3 bucket for job posts
+        self.s3_bucket = S3.Bucket(
+            self,
+            "LabelAppBucket",
+            bucket_name = os.getenv("S3_BUCKET_NAME"),
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            block_public_access = S3.BlockPublicAccess.BLOCK_ALL,
+        )
+
 
 
         # ===== LAMBDA FUNCTIONS =====
@@ -233,18 +254,27 @@ class CdkStack(Stack):
         self.sns_topic.grant_publish(preprocessing_lambda)
 
 
-
-        # ===== S3 BUCKET =====
-
-        # Create S3 bucket for job posts
-        self.s3_bucket = S3.Bucket(
+        # Create lambda function to save messages from the SNS topic to s3 bucket
+        sns_to_s3 = LAMBDA.Function(
             self,
-            "LabelAppBucket",
-            bucket_name = os.getenv("S3_BUCKET_NAME"),
-            removal_policy = RemovalPolicy.DESTROY,
-            auto_delete_objects = True,
-            block_public_access = S3.BlockPublicAccess.BLOCK_ALL,
+            "SavePreprocessedJobsToS3",
+            runtime = LAMBDA.Runtime.PYTHON_3_12,
+            code = LAMBDA.Code.from_asset(lambda_path),
+            handler = "sns-to-s3.lambda_handler",
+            dead_letter_queue = self.dead_letter_queue.queue,
+            function_name = "SavePreprocessedJobsToS3",
+            environment = {
+                "SNS_TOPIC_ARN": self.sns_topic.topic_arn,
+                "S3_BUCKET_NAME": self.s3_bucket.bucket_name
+            }
         )
+        self.s3_bucket.grant_write(sns_to_s3)
+        #self.sns_topic.grant_subscribe(sns_to_s3)
+
+
+
+
+        
 
 
         

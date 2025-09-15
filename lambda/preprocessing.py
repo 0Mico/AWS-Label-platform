@@ -28,6 +28,7 @@ def lambda_handler(event, context):
                 job_data = json.loads(job)
                 filtered_job = {
                     "Job_ID": job_data.get("Job_ID"),
+                    "Title": job_data.get("Title"),
                     "Description": job_data.get("Description"),
                 }
                 filtered_json_string = json.dumps(filtered_job)

@@ -9,6 +9,7 @@ try:
     dynamodb = boto3.resource('dynamodb')
     sqs_client = boto3.client('sqs')
     sns_client = boto3.client('sns')
+    s3_client = boto3.client('s3')
     
     session = boto3.Session()
     print(f"AWS session region: {session.region_name}")
@@ -20,7 +21,7 @@ except Exception as e:
 
 
 
-# Retrieve the DynamoDB table by table name
+"""# Retrieve the DynamoDB table by table name
 def _retrieveDynamoDBTable(table_name: str, dynamodb=dynamodb):
     try:
         table = dynamodb.Table(table_name)
@@ -59,7 +60,6 @@ def _updateJobInDynamoDB(db_table, job: dict):
         print(f"Error updating job in DynamoDB: {e}")
         return None
 
-
 # Check if the job with the id received already exists in the table passed
 def _checkIfJobExists(db_table, job_id: str):
     try:
@@ -69,6 +69,7 @@ def _checkIfJobExists(db_table, job_id: str):
     except Exception as e:
         print(f"Error checking job existence: {e}")
         return None 
+"""
 
 
 # Retrieve the SQS queue by queue name
@@ -82,6 +83,7 @@ def _retrieveSQSQueueUrl(queue_name: str, sqs_client=sqs_client):
         return None
 
 
+"""
 # Write the job in the SQS queue
 def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
     try:
@@ -100,7 +102,7 @@ def _writeJobToSQSQueue(sqs_queue, job: dict, sqs_client=sqs_client):
     job['Sent_to_queue'] = True
     _updateJobInDynamoDB(_retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME")), job)
     return
-
+"""
 
 def _readJobFromSQSQueue(queue_url: str, sqs_client=sqs_client):
     try:
@@ -139,4 +141,19 @@ def _writeJobToSNSTopic(sns_topic_arn: str, job: str, sns_client=sns_client):
     
     except Exception as e:
         print(f"Error publishing message to SNS: {e}")
+        return None
+    
+
+def _saveJobToS3Bucket(bucket_name: str, job: str, key: str, s3_client=s3_client):
+    try:
+        s3_client.put_object(
+            Bucket = bucket_name,
+            Key = key,
+            Body = job,
+            ContentType = "application/json"
+        )
+        return
+    
+    except Exception as e:
+        print(f"Error saving job to S3: {e}")
         return None

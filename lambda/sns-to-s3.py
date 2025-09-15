@@ -1,34 +1,30 @@
 import os
+import json
 import awsutils as aws_ut
-
+from datetime import datetime
 
 def lambda_handler(event, context):
-    sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
-    sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
+    s3_bucket_name = os.getenv('S3_BUCKET_NAME')
     
-    if not sqs_queue_url:
-        print("SQS queue URL not found")
+    if not s3_bucket_name:
+        print("Bucket name not defined")
         return
     
     try:
-        messages = aws_ut._readJobFromSQSQueue(sqs_queue_url)
-        if not messages:
-            print("No messages in the queue")
-            return
-        
-        for message in messages:
-            receipt_handle = message.get('ReceiptHandle')
-            job = message.get('Body')
-            if not job or not receipt_handle:
-                print("Message body or receipt handle is empty")
-                continue
-            
-            aws_ut._writeJobToSNSTopic(sns_topic_arn, job)
-            
-            print(f"Processing job: {job}, receipt handle: {receipt_handle}")
-            aws_ut._deleteJobFromSQSQueue(sqs_queue_url, receipt_handle)
-            print("Message processed and deleted from the queue")
+        for record in event['Records']:
+            sns_message = record["Sns"]["Message"]
+            json_message = json.loads(sns_message)            
+            job_title = json_message.get("Title")
+            timestamp = datetime.now().strftime('%Y/%m/%d/%H:%M:%S')
 
+            filename = f"{job_title}/{timestamp}"
+
+            s3_key = f"Preprocessed-posts/{filename}.json"
+
+            aws_ut._saveJobToS3Bucket(s3_bucket_name, sns_message, s3_key)
+    
     except Exception as e:
-        print(f"Error processing messages from SQS: {e}")
-        return
+        print(f"Error processing SNS message: {e}")
+        return None
+    
+    return
