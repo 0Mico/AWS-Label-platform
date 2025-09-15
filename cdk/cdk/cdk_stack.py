@@ -267,7 +267,6 @@ class CdkStack(Stack):
         self.sns_topic.add_subscription(
             sns_subscriptions.LambdaSubscription(
                 sns_to_s3,
-                raw_message_delivery = True
             )
         )
 
