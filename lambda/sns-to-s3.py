@@ -15,9 +15,9 @@ def lambda_handler(event, context):
             sns_message = record["Sns"]["Message"]
             json_message = json.loads(sns_message)            
             job_title = json_message.get("Title")
-            timestamp = datetime.now().strftime('%Y/%m/%d/%H:%M:%S')
+            timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
 
-            filename = f"{job_title}/{timestamp}"
+            filename = f"{job_title}-{timestamp}"
 
             s3_key = f"Preprocessed-posts/{filename}.json"
 
