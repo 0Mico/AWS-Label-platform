@@ -210,14 +210,6 @@ class CdkStack(Stack):
             )
         )
 
-        # Subscribe the lambda function to send job posts to s3
-        self.sns_topic.add_subscription(
-            sns_subscriptions.LambdaSubscription(
-                sns_to_s3,
-                raw_message_delivery = True
-            )
-        )
-
 
 
         # ===== S3 BUCKET =====
@@ -270,6 +262,14 @@ class CdkStack(Stack):
         )
         self.s3_bucket.grant_write(sns_to_s3)
         #self.sns_topic.grant_subscribe(sns_to_s3)
+        
+        # Subscribe the lambda function to the sns topic
+        self.sns_topic.add_subscription(
+            sns_subscriptions.LambdaSubscription(
+                sns_to_s3,
+                raw_message_delivery = True
+            )
+        )
 
 
 
