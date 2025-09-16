@@ -13,6 +13,7 @@ from aws_cdk import (
     aws_sqs as SQS,
     aws_sns as SNS,
     aws_s3 as S3,
+    aws_apigateway as APIGateway,
     aws_logs as logs,
     aws_sns_subscriptions as sns_subscriptions
 )
@@ -225,6 +226,24 @@ class CdkStack(Stack):
         )
 
 
+        # Create s3 bucket for web page hosting
+        self.website_bucket = S3.Bucket(
+            self,
+            "WebsiteBucket",
+            bucket_name = f"{os.getenv('WEBSITE_BUCKET_NAME')}-website-{self.account}",
+            website_index_document = "index.html",
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            public_read_access = True,
+            block_public_access = S3.BlockPublicAccess(
+                block_public_acls = False,
+                block_public_policy = False,
+                ignore_public_acls = False,
+                restrict_public_buckets = False
+            )
+        )
+
+
 
         # ===== LAMBDA FUNCTIONS =====
 
@@ -261,7 +280,6 @@ class CdkStack(Stack):
             }
         )
         self.s3_bucket.grant_write(sns_to_s3)
-        #self.sns_topic.grant_subscribe(sns_to_s3)
         
         # Subscribe the lambda function to the sns topic
         self.sns_topic.add_subscription(
@@ -269,6 +287,65 @@ class CdkStack(Stack):
                 sns_to_s3,
             )
         )
+
+
+        # Create lambda function to bring preprocessed posts to the web page
+        fetch_posts = LAMBDA.Function(
+            self,
+            "FetchJobsFromQueue",
+            runtime = LAMBDA.Runtime.PYTHON_3_12,
+            code = LAMBDA.Code.from_asset(lambda_path),
+            handler = "fetch-from-queue.lambda_handler",
+            dead_letter_queue = self.dead_letter_queue.queue,
+            function_name = "FetchJobsFromQueue",
+            environment = {
+                "PREPROCESSED_JOBS_QUEUE_NAME": self.preprocessed_job_posts_queue.queue_name
+            }
+        )
+        self.preprocessed_job_posts_queue.grant_consume_messages(fetch_posts)
+
+
+        # Create lambda function to save labeled posts to s3 bucket
+        save_labeled_posts = LAMBDA.Function(
+            self,
+            "SvaePostsToS3",
+            runtime = LAMBDA.Runtime.PYTHON_3_12,
+            code = LAMBDA.Code.from_asset(lambda_path),
+            handler = "save-to-s3.lambda_handler",
+            dead_letter_queue = self.dead_letter_queue.queue,
+            function_name = "SaveJobsToS3",
+            environment = {
+                "S3_BUCKET_NAME": self.s3_bucket.bucket_name,
+                "LABELED_POSTS_PREFIX" : "labeled_posts/"
+            }
+        )
+        self.s3_bucket.grant_write(save_labeled_posts)
+
+
+
+        # ===== API GATEWAY =====
+
+        # Create API gateway to route website requests
+        self.api_gateway = APIGateway.RestApi(
+            self,
+            "LabelAppAPI",
+            rest_api_name = "Label-app-API",
+            description = "API for the Label App",
+            default_cors_preflight_options = APIGateway.CorsOptions(
+                allow_origins = [self.website_bucket.bucket_website_url, "http://localhost:3000"],
+                allow_methods = ["GET", "POST"]
+            )
+        )
+        jobs_resource = self.api_gateway.root.add_resource("Job Posts")
+        jobs_resource.add_method(
+            "GET",
+            APIGateway.LambdaIntegration(fetch_posts),
+        )
+        jobs_resource.add_method(
+            "POST",
+            APIGateway.LambdaIntegration(save_labeled_posts),
+        )
+
 
 
 
