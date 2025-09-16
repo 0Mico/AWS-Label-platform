@@ -298,7 +298,7 @@ class CdkStack(Stack):
             dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "FetchJobsFromQueue",
             environment = {
-                "PREPROCESSED_JOBS_QUEUE_NAME": self.preprocessed_job_posts_queue.queue_name
+                "PREPROCESSED_JOBS_QUEUE_URL": self.preprocessed_job_posts_queue.queue_url
             }
         )
         self.preprocessed_job_posts_queue.grant_consume_messages(fetch_posts)
