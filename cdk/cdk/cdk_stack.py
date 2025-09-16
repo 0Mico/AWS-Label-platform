@@ -230,7 +230,6 @@ class CdkStack(Stack):
         self.website_bucket = S3.Bucket(
             self,
             "WebsiteBucket",
-            bucket_name = f"{os.getenv('WEBSITE_BUCKET_NAME')}-website-{self.account}",
             website_index_document = "index.html",
             removal_policy = RemovalPolicy.DESTROY,
             auto_delete_objects = True,
