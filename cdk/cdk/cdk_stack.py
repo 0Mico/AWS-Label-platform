@@ -335,7 +335,7 @@ class CdkStack(Stack):
                 allow_methods = ["GET", "POST"]
             )
         )
-        jobs_resource = self.api_gateway.root.add_resource("Job Posts")
+        jobs_resource = self.api_gateway.root.add_resource("Job-Posts")
         jobs_resource.add_method(
             "GET",
             APIGateway.LambdaIntegration(fetch_posts),
