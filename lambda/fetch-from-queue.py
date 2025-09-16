@@ -4,7 +4,7 @@ import awsutils as aws_ut
 
 
 def lambda_handler(event, context):
-    sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("PREPROCESSED_JOBS_QUEUE_URL"))
+    sqs_queue_url = os.getenv("PREPROCESSED_JOBS_QUEUE_URL")
     
     if not sqs_queue_url:
         print("SQS queue URL not found")
