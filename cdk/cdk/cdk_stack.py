@@ -281,7 +281,7 @@ class CdkStack(Stack):
         # Create lambda function to receive messages from the deduplicated queue
         preprocessing_lambda = LAMBDA.Function(
             self,
-            "PreprocessingJobPosts",
+            "PreprocessingJobPostsImage",
             runtime = LAMBDA.Runtime.FROM_IMAGE,
             code = LAMBDA.Code.from_ecr_image(
                 repository = preprocessing_image.repository,
@@ -291,7 +291,7 @@ class CdkStack(Stack):
             dead_letter_queue = self.dead_letter_queue.queue,
             timeout = Duration.seconds(300),
             memory_size = 2048,
-            function_name = "PreprocessingJobPosts",
+            function_name = "ConteinerizedPreprocessingJobPosts",
             environment = {
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
                 "SNS_TOPIC_ARN": self.sns_topic.topic_arn
