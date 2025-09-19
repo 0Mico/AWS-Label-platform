@@ -24,7 +24,7 @@ from constructs import Construct
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
-transformers_path = str(Path(__file__).parent.parent.parent / "lambda/layers/transformers")
+layers_path = str(Path(__file__).parent.parent.parent / "lambda/layers")
 env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
@@ -251,7 +251,7 @@ class CdkStack(Stack):
         transformers_layer = LAMBDA.LayerVersion(
             self,
             "TransformersLayer",
-            code = LAMBDA.Code.from_asset(transformers_path),
+            code = LAMBDA.Code.from_asset(layers_path),
             compatible_runtimes = [LAMBDA.Runtime.PYTHON_3_12],
         )
 
@@ -354,12 +354,3 @@ class CdkStack(Stack):
             "POST",
             APIGateway.LambdaIntegration(save_labeled_posts),
         )
-
-
-
-
-
-        
-
-
-        
