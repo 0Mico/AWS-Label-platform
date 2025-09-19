@@ -20,12 +20,13 @@ from aws_cdk import (
 
 from aws_cdk import BundlingOptions
 from aws_cdk import RemovalPolicy, Duration
+from aws_cdk import aws_s3_deployment as S3Deploy
 from constructs import Construct
 
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
-layers_path = str(Path(__file__).parent.parent.parent / "lambda/layers")
+website_path = str(Path(__file__).parent.parent.parent / "website")
 env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
@@ -244,31 +245,18 @@ class CdkStack(Stack):
             )
         )
 
+        # Deploy website files into the bucket
+        website_deployment = S3Deploy.BucketDeployment(
+            self,
+            "WebsiteDeployment",
+            sources = [S3Deploy.Source.asset(website_path)],
+            destination_bucket = self.website_bucket,
+        )
+
 
 
         # ===== LAMBDA FUNCTIONS =====
-        """
-        # Create layer for transformers. Needed for the preprocessing function
-        transformers_layer = LAMBDA.LayerVersion(
-            self,
-            "TransformersLayer",
-            code = LAMBDA.Code.from_asset(
-                layers_path,
-                bundling = BundlingOptions(
-                    image = LAMBDA.Runtime.PYTHON_3_12.bundling_image,
-                    command = [
-                        "bash", "-c",
-                        "pip install --upgrade pip && "
-                        "pip install -r requirements.txt -t /asset-output/python/ "
-                        "--platform manylinux2014_x86_64 --implementation cp "
-                        "--python-version 3.12 --only-binary=:all: --upgrade"
-                    ],
-                    user = "root"
-                )
-            ),
-            compatible_runtimes = [LAMBDA.Runtime.PYTHON_3_12],
-        )
-        """
+
 
         # Create docker image for preprocessing lambda function
         preprocessing_image = ECRAssets.DockerImageAsset(
@@ -289,8 +277,8 @@ class CdkStack(Stack):
             ),
             handler = LAMBDA.Handler.FROM_IMAGE,
             dead_letter_queue = self.dead_letter_queue.queue,
-            timeout = Duration.seconds(300),
-            memory_size = 2048,
+            timeout = Duration.seconds(180),
+            memory_size = 1024,
             function_name = "ConteinerizedPreprocessingJobPosts",
             environment = {
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,

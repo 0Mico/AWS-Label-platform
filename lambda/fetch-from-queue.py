@@ -1,6 +1,6 @@
 import os
 import json
-import awsutils as aws_ut
+import preprocessing.awsutils as aws_ut
 
 
 def lambda_handler(event, context):
