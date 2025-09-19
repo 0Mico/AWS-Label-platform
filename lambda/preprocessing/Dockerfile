@@ -10,4 +10,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY preprocessing.py .
 COPY awsutils.py .
 
+# Pre-download tokenizer model because during execution the function cannot download it:
+# the container file system is read-only except for /tmp.
+RUN python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('bert-base-multilingual-uncased', cache_dir='/tmp/transformers')"
+
+ENV HF_HOME=/tmp/huggingface
+ENV TRANSFORMERS_CACHE=/tmp/transformers
+
 CMD ["preprocessing.lambda_handler"]
