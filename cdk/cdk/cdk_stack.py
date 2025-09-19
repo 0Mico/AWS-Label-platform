@@ -24,6 +24,7 @@ from constructs import Construct
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
+transformers_path = str(Path(__file__).parent.parent.parent / "lambda/layers/transformers")
 env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
@@ -246,6 +247,14 @@ class CdkStack(Stack):
 
         # ===== LAMBDA FUNCTIONS =====
 
+        # Create layer for transformers. Needed for the preprocessing function
+        transformers_layer = LAMBDA.LayerVersion(
+            self,
+            "TransformersLayer",
+            code = LAMBDA.Code.from_asset(transformers_path),
+            compatible_runtimes = [LAMBDA.Runtime.PYTHON_3_12],
+        )
+
         # Create lambda function to receive messages from the deduplicated queue
         preprocessing_lambda = LAMBDA.Function(
             self,
@@ -253,6 +262,7 @@ class CdkStack(Stack):
             runtime = LAMBDA.Runtime.PYTHON_3_12,
             code = LAMBDA.Code.from_asset(lambda_path),
             handler = "preprocessing.lambda_handler",
+            layers = [transformers_layer],
             dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "PreprocessingJobPosts",
             environment = {
