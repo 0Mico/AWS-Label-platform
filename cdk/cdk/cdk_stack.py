@@ -12,12 +12,13 @@ from aws_cdk import (
     aws_ecs as ECS,
     aws_sqs as SQS,
     aws_sns as SNS,
+    aws_sns_subscriptions as sns_subscriptions,
     aws_s3 as S3,
     aws_apigateway as APIGateway,
-    aws_logs as logs,
-    aws_sns_subscriptions as sns_subscriptions,
+    aws_logs as logs
 )
 
+from aws_cdk import BundlingOptions, Platform
 from aws_cdk import RemovalPolicy, Duration
 from constructs import Construct
 
@@ -251,7 +252,21 @@ class CdkStack(Stack):
         transformers_layer = LAMBDA.LayerVersion(
             self,
             "TransformersLayer",
-            code = LAMBDA.Code.from_asset(layers_path),
+            code = LAMBDA.Code.from_asset(
+                layers_path,
+                bundling = BundlingOptions(
+                    image = LAMBDA.Runtime.PYTHON_3_12.bundling_image,
+                    command = [
+                        "bash", "-c",
+                        "pip install --upgrade pip && "
+                        "pip install -r requirements.txt -t /asset-output/python/ "
+                        "--platform manylinux2014_x86_64 --implementation cp "
+                        "--python-version 3.12 --only-binary=:all: --upgrade"
+                    ],
+                    platform = Platform.LINUX_AMD64,
+                    user = "root"
+                )
+            ),
             compatible_runtimes = [LAMBDA.Runtime.PYTHON_3_12],
         )
 
