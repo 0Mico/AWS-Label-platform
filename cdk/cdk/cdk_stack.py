@@ -247,7 +247,7 @@ class CdkStack(Stack):
 
 
         # ===== LAMBDA FUNCTIONS =====
-
+        """
         # Create layer for transformers. Needed for the preprocessing function
         transformers_layer = LAMBDA.LayerVersion(
             self,
@@ -268,16 +268,29 @@ class CdkStack(Stack):
             ),
             compatible_runtimes = [LAMBDA.Runtime.PYTHON_3_12],
         )
+        """
+
+        # Create docker image for preprocessing lambda function
+        preprocessing_image = ECRAssets.DockerImageAsset(
+            self,
+            "PreprocessingImage",
+            directory = lambda_path + "/preprocessing",
+            asset_name = "Preprocessing-Lambda-Image"
+        )
 
         # Create lambda function to receive messages from the deduplicated queue
         preprocessing_lambda = LAMBDA.Function(
             self,
             "PreprocessingJobPosts",
-            runtime = LAMBDA.Runtime.PYTHON_3_12,
-            code = LAMBDA.Code.from_asset(lambda_path),
-            handler = "preprocessing.lambda_handler",
-            layers = [transformers_layer],
+            runtime = LAMBDA.Runtime.FROM_IMAGE,
+            code = LAMBDA.Code.from_ecr_image(
+                repository = preprocessing_image.repository,
+                tag_or_digest = preprocessing_image.asset_hash
+            ),
+            handler = LAMBDA.Handler.FROM_IMAGE,
             dead_letter_queue = self.dead_letter_queue.queue,
+            timeout = Duration.seconds(300),
+            memory_size = 2048,
             function_name = "PreprocessingJobPosts",
             environment = {
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
