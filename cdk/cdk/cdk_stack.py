@@ -18,7 +18,7 @@ from aws_cdk import (
     aws_logs as logs
 )
 
-from aws_cdk import BundlingOptions, Platform
+from aws_cdk import BundlingOptions
 from aws_cdk import RemovalPolicy, Duration
 from constructs import Construct
 
@@ -263,7 +263,6 @@ class CdkStack(Stack):
                         "--platform manylinux2014_x86_64 --implementation cp "
                         "--python-version 3.12 --only-binary=:all: --upgrade"
                     ],
-                    platform = Platform.LINUX_AMD64,
                     user = "root"
                 )
             ),
