@@ -26,7 +26,7 @@ from constructs import Construct
 
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
-website_path = str(Path(__file__).parent.parent.parent / "website")
+website_path = str(Path(__file__).parent.parent.parent / "webapp")
 env_path = Path(__file__).parent / '.env'
 
 class CdkStack(Stack):
