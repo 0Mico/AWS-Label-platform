@@ -15,7 +15,7 @@ from aws_cdk import (
     aws_s3 as S3,
     aws_apigateway as APIGateway,
     aws_logs as logs,
-    aws_sns_subscriptions as sns_subscriptions
+    aws_sns_subscriptions as sns_subscriptions,
 )
 
 from aws_cdk import RemovalPolicy, Duration

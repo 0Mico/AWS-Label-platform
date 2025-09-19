@@ -1,8 +1,8 @@
-#!/home/mico/AWS-Label-platform/cdk/.venv/bin/python3
+#!/var/lang/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
-from numpy._configtool import main
+from huggingface_hub.cli.hf import main
 if __name__ == '__main__':
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.exit(main())
