@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Post Labeling Tool</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/config.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1 id="header-title">Job Post Labeling Tool</h1>        
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span id="status-text">Ready</span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Left Sidebar - Job Posts List -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                Job Posts
+                <button class="btn btn-small" onclick="loadJobPosts()">Refresh</button>
+            </div>
+            <div class="job-list" id="job-list">
+                <div class="loading">Loading job posts...</div>
+            </div>
+        </div>
+
+        <!-- Main Editor -->
+        <div class="main-editor">
+            <div class="editor-header">
+                <div class="editor-title" id="editor-title">Select a job post to start labeling</div>
+                <div class="editor-actions">
+                    <button class="btn secondary" onclick="clearLabels()">Clear Labels</button>
+                    <button class="btn" onclick="saveLabels()">Save Progress</button>
+                </div>
+            </div>
+            <div class="editor-content" id="editor-content">
+                <div class="no-selection">
+                    <p>Select a job post from the left panel to begin labeling.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Labels -->
+        <div class="label-panel">
+            <div class="label-panel-header">Labels</div>
+            
+            <div class="label-creation">
+                <div class="form-group">
+                    <label>Label Name</label>
+                    <input type="text" id="label-name-input" placeholder="e.g., Skills, Experience">
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <div class="color-picker" id="color-picker">
+                        <div class="color-option selected" style="background-color: #ffd700" data-color="#ffd700"></div>
+                        <div class="color-option" style="background-color: #90EE90" data-color="#90EE90"></div>
+                        <div class="color-option" style="background-color: #FFB6C1" data-color="#FFB6C1"></div>
+                        <div class="color-option" style="background-color: #87CEEB" data-color="#87CEEB"></div>
+                        <div class="color-option" style="background-color: #DDA0DD" data-color="#DDA0DD"></div>
+                        <div class="color-option" style="background-color: #F0E68C" data-color="#F0E68C"></div>
+                    </div>
+                </div>
+                <button class="btn" onclick="createLabel()">Create Label</button>
+            </div>
+
+            <div class="labels-list" id="labels-list">
+                <div style="color: #969696; font-size: 12px; text-align: center;">
+                    No labels created yet
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <script src="js/script.js"></script>
+</body>
+</html>

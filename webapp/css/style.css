@@ -1,0 +1,357 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e1e1e;
+    color: #cccccc;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.header {
+    background-color: #2d2d30;
+    height: 50px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #3e3e42;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#header-title {
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    position: absolute;
+    right: 16px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+}
+
+.container {
+    display: flex;
+    height: calc(100vh - 40px);
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #252526;
+    border-right: 1px solid #3e3e42;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 12px 16px;
+    background-color: #2d2d30;
+    border-bottom: 1px solid #3e3e42;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.job-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.job-item {
+    padding: 8px 16px;
+    border-bottom: 1px solid #3e3e42;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.job-item:hover {
+    background-color: #2a2d2e;
+}
+
+.job-item.active {
+    background-color: #094771;
+    border-left: 2px solid #0078d4;
+}
+
+.job-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.job-company {
+    font-size: 11px;
+    color: #969696;
+}
+
+.main-editor {
+    flex: 1;
+    background-color: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-header {
+    background-color: #2d2d30;
+    padding: 8px 16px;
+    border-bottom: 1px solid #3e3e42;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-title {
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #106ebe;
+}
+
+.btn.secondary {
+    background-color: #3e3e42;
+}
+
+.btn.secondary:hover {
+    background-color: #4e4e52;
+}
+
+.editor-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    line-height: 1.6;
+}
+
+.job-content {
+    background-color: #2d2d30;
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid #3e3e42;
+}
+
+.job-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.job-header h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.job-meta {
+    color: #969696;
+    font-size: 14px;
+}
+
+.job-description {
+    white-space: pre-wrap;
+    font-size: 14px;
+    user-select: text;
+}
+
+.highlighted {
+    background-color: #ffd700;
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    position: relative;
+}
+
+.label-panel {
+    width: 300px;
+    background-color: #252526;
+    border-left: 1px solid #3e3e42;
+    display: flex;
+    flex-direction: column;
+}
+
+.label-panel-header {
+    padding: 12px 16px;
+    background-color: #2d2d30;
+    border-bottom: 1px solid #3e3e42;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+}
+
+.label-creation {
+    padding: 16px;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #cccccc;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 6px 8px;
+    background-color: #3c3c3c;
+    border: 1px solid #3e3e42;
+    border-radius: 3px;
+    color: #cccccc;
+    font-size: 12px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #0078d4;
+}
+
+.color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.color-option {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.color-option.selected {
+    border-color: #0078d4;
+}
+
+.labels-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.label-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.label-item:hover {
+    background-color: #3e3e42;
+}
+
+.label-item.selected {
+    background-color: #094771;
+}
+
+.label-name {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.label-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.label-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-small {
+    background: none;
+    border: none;
+    color: #969696;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+
+.btn-small:hover {
+    background-color: #3e3e42;
+    color: #cccccc;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #969696;
+}
+
+.no-selection {
+    text-align: center;
+    padding: 40px;
+    color: #969696;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4e4e4e;
+}

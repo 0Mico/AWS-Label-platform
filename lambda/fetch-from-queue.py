@@ -5,6 +5,7 @@ import awsutils as aws_ut
 
 def lambda_handler(event, context):
     sqs_queue_url = os.getenv("PREPROCESSED_JOBS_QUEUE_URL")
+    processed_jobs = []
     
     if not sqs_queue_url:
         print("SQS queue URL not found")
@@ -22,6 +23,33 @@ def lambda_handler(event, context):
             if not job or not receipt_handle:
                 print("Message body or receipt handle is empty")
                 continue
+
+            try:
+                job_data = json.loads(job)
+                bert_tokens = job_data.get('Description', [])
+                token_objects = []
+                if isinstance(bert_tokens, list):
+                    for i, token in enumerate(bert_tokens):
+                        token_objects.append({
+                            'id': i,
+                            'text': token,
+                            'label': '',
+                            'position': i
+                        })
+
+                formatted_job = {
+                    'Job_ID': job_data.get('Job_ID'),
+                    'Title': job_data.get('Title', 'No title'),
+                    'Company': job_data.get('Company', 'No company'),
+                    'Tokens': token_objects,
+                    'Total_tokens': len(token_objects)
+                }
+                
+                processed_jobs.append(formatted_job)
+
+            except Exception as e:
+                print(f"Error parsing job body: {e}")
+                description = 'No description found'
 
             print(f"Processing message: {job}")
 

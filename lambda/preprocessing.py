@@ -1,11 +1,18 @@
 import os
 import json
 import awsutils as aws_ut
+from transformers import AutoTokenizer
 
+
+def _tokenizeText(tokenizer: AutoTokenizer, text: str):
+    return tokenizer.tokenize(text)
+    
 
 def lambda_handler(event, context):
     sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
     sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-uncased")
+
     
     if not sqs_queue_url:
         print("SQS queue URL not found")
@@ -26,10 +33,13 @@ def lambda_handler(event, context):
             
             try:
                 job_data = json.loads(job)
+                job_description = job_data.get("Description")
+                job_tokenized = _tokenizeText(tokenizer, job_description)
                 filtered_job = {
                     "Job_ID": job_data.get("Job_ID"),
                     "Title": job_data.get("Title"),
-                    "Description": job_data.get("Description"),
+                    "Company": job_data.get("Company_name"),
+                    "Description": job_tokenized
                 }
                 filtered_json_string = json.dumps(filtered_job, ensure_ascii=False)
                 
