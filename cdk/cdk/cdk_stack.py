@@ -21,6 +21,7 @@ from aws_cdk import (
 from aws_cdk import BundlingOptions
 from aws_cdk import RemovalPolicy, Duration
 from aws_cdk import aws_s3_deployment as S3Deploy
+from aws_cdk import aws_s3_assets as S3Assets
 from constructs import Construct
 
 
@@ -28,6 +29,14 @@ scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
 website_path = str(Path(__file__).parent.parent.parent / "webapp")
 env_path = Path(__file__).parent / '.env'
+
+api_id = os.getenv("API_GATEWAY_API_ID")
+aws_region = os.getenv("AWS_REGION")
+
+config_js_content = f"""const CONFIG = {{     
+    API_ID: '{api_id}',     
+    AWS_REGION: '{aws_region}' 
+}};"""
 
 class CdkStack(Stack):
 
@@ -249,7 +258,10 @@ class CdkStack(Stack):
         website_deployment = S3Deploy.BucketDeployment(
             self,
             "WebsiteDeployment",
-            sources = [S3Deploy.Source.asset(website_path)],
+            sources = [
+                S3Deploy.Source.asset(website_path),
+                S3Deploy.Source.data(website_path + "/js/config.js", config_js_content)    
+            ],
             destination_bucket = self.website_bucket,
         )
 
