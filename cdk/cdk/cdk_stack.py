@@ -32,6 +32,7 @@ env_path = Path(__file__).parent / '.env'
 
 api_id = os.getenv("API_GATEWAY_API_ID")
 aws_region = os.getenv("AWS_REGION")
+website_url = os.getenv("WEBSITE_URL")
 
 config_js_content = f"""const CONFIG = {{     
     API_ID: '{api_id}',     
@@ -364,7 +365,7 @@ class CdkStack(Stack):
             rest_api_name = "Label-app-API",
             description = "API for the Label App",
             default_cors_preflight_options = APIGateway.CorsOptions(
-                allow_origins = [os.getenv("WEBSITE_URL")],
+                allow_origins = [website_url],
                 allow_methods = ["GET", "POST"]
             )
         )
