@@ -30,6 +30,9 @@ lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
 website_path = str(Path(__file__).parent.parent.parent / "webapp")
 env_path = Path(__file__).parent / '.env'
 
+dotenv.load_dotenv(env_path)
+
+website_url = os.getenv("WEBSITE_URL")
 
 class CdkStack(Stack):
 
@@ -40,6 +43,7 @@ class CdkStack(Stack):
         dotenv.load_dotenv(env_path)
 
         website_url = os.getenv("WEBSITE_URL")
+        print(type(website_url))
 
 
         # ===== DYNAMO DB =====
