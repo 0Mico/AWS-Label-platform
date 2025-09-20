@@ -269,6 +269,7 @@ class CdkStack(Stack):
             sources = [S3Deploy.Source.data(website_path + "/js/config.js", config_js_content)],
             destination_bucket = self.website_bucket,
             destination_key_prefix = "js/",
+            prune = False
         )
 
 
