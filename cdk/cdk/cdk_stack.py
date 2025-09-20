@@ -262,17 +262,6 @@ class CdkStack(Stack):
             destination_bucket = self.website_bucket,
         )
 
-        # Deploy config.js file into the bucket in a specific path
-        config_deployment = S3Deploy.BucketDeployment(
-            self,
-            "ConfigFileDeployment",    
-            sources = [S3Deploy.Source.data(website_path + "/js/config.js", config_js_content)],
-            destination_bucket = self.website_bucket,
-            destination_key_prefix = "js/",
-            prune = False
-        )
-
-
 
         # ===== LAMBDA FUNCTIONS =====
 
