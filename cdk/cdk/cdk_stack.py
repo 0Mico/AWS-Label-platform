@@ -30,6 +30,8 @@ lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
 website_path = str(Path(__file__).parent.parent.parent / "webapp")
 env_path = Path(__file__).parent / '.env'
 
+dotenv.load_dotenv(env_path)
+
 api_id = os.getenv("API_GATEWAY_API_ID")
 aws_region = os.getenv("AWS_REGION")
 website_url = os.getenv("WEBSITE_URL")
@@ -45,7 +47,7 @@ class CdkStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
 
-        dotenv.load_dotenv(env_path)
+        
 
 
         # ===== DYNAMO DB =====
