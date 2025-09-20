@@ -28,31 +28,21 @@ from constructs import Construct
 scraper_path = str(Path(__file__).parent.parent.parent / "scraper")
 lambda_path = str(Path(__file__).parent.parent.parent / "lambda")
 website_path = str(Path(__file__).parent.parent.parent / "webapp")
-env_path = Path(__file__).parent / '.env'
 
-dotenv.load_dotenv(env_path)
-
-website_url = os.getenv("WEBSITE_URL")
 
 class CdkStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, config: dict, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-
-        dotenv.load_dotenv(env_path)
-
-        website_url = os.getenv("WEBSITE_URL")
-        print(type(website_url))
-
-
+        self.config = config
         # ===== DYNAMO DB =====
         
         # Create deduplication table
         self.job_posts_table = DynamoDB.TableV2(
             self,
             "JobPostsTable",
-            table_name = os.getenv("DYNAMODB_TABLE_NAME"), 
+            table_name = self.config["dynamodb_table_name"],
             partition_key = DynamoDB.Attribute(name="Job_ID", type=DynamoDB.AttributeType.STRING),
             billing = DynamoDB.Billing.on_demand(),
             point_in_time_recovery_specification = {
@@ -72,7 +62,7 @@ class CdkStack(Stack):
             queue = SQS.Queue(
                 self,
                 "DeadLetterQueue",
-                queue_name = os.getenv("DEAD_LETTER_QUEUE_NAME"),
+                queue_name = self.config["dead_letter_queue_name"],
                 visibility_timeout = Duration.seconds(180),
                 retention_period = Duration.days(14)
             )
@@ -82,7 +72,7 @@ class CdkStack(Stack):
         self.deduplicated_posts_queue = SQS.Queue(
             self,
             "DeduplicatedJobPostsQueue",
-            queue_name = os.getenv("DEDUPLICATED_POSTS_QUEUE_NAME"),
+            queue_name = self.config["deduplicated_posts_queue_name"],
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
@@ -92,7 +82,7 @@ class CdkStack(Stack):
         self.preprocessed_job_posts_queue = SQS.Queue(
             self,
             "PreprocessedJobPostsQueue",
-            queue_name = os.getenv("PREPROCESSED_POSTS_QUEUE_NAME"),
+            queue_name = self.config["preprocessed_posts_queue_name"],
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
@@ -188,7 +178,7 @@ class CdkStack(Stack):
                 "DYNAMODB_TABLE_NAME": self.job_posts_table.table_name,
                 "DEDUPLICATED_JOBS_QUEUE_NAME": self.deduplicated_posts_queue.queue_name,
                 "DEAD_LETTER_QUEUE_NAME": self.dead_letter_queue.queue.queue_name,
-                "SINGLE_JOB_BASE_LINK": "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
+                "SINGLE_JOB_BASE_LINK": self.config["single_job_base_link"]
             }
         )
 
@@ -210,7 +200,7 @@ class CdkStack(Stack):
         self.sns_topic = SNS.Topic(
             self,
             "PreprocessedJobPostsTopic",
-            topic_name = os.getenv("SNS_TOPIC_NAME")
+            topic_name = self.config["sns_topic_name"]
         )
 
         # Subscribe the preprocessed job posts SQS queue to the SNS topic
@@ -230,7 +220,7 @@ class CdkStack(Stack):
         self.s3_bucket = S3.Bucket(
             self,
             "LabelAppBucket",
-            bucket_name = os.getenv("S3_BUCKET_NAME"),
+            bucket_name = self.config["s3_bucket_name"],
             removal_policy = RemovalPolicy.DESTROY,
             auto_delete_objects = True,
             block_public_access = S3.BlockPublicAccess.BLOCK_ALL,
@@ -241,6 +231,7 @@ class CdkStack(Stack):
         self.website_bucket = S3.Bucket(
             self,
             "WebsiteBucket",
+            bucket_name = self.config["website_bucket_name"],
             website_index_document = "index.html",
             removal_policy = RemovalPolicy.DESTROY,
             auto_delete_objects = True,
@@ -363,7 +354,7 @@ class CdkStack(Stack):
             rest_api_name = "Label-app-API",
             description = "API for the Label App",
             default_cors_preflight_options = APIGateway.CorsOptions(
-                allow_origins = [website_url],
+                allow_origins = [self.config["website_url"]],
                 allow_methods = ["GET", "POST"]
             )
         )

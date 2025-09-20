@@ -1,13 +1,37 @@
 #!/usr/bin/env python3
 import os
-
+import dotenv
+from pathlib import Path
 import aws_cdk as cdk
 
 from cdk.cdk_stack import CdkStack
 
+env_path = Path(__file__).parent / "cdk" / ".env"
+print(f"Loading .env from: {env_path}")
+
+if env_path.exists():
+    result = dotenv.load_dotenv(env_path)
+    print(f"dotenv.load_dotenv() result: {result}")
+else:
+    print("Warning: .env file not found!")
+
+config = {
+    "dynamodb_table_name": os.getenv("DYNAMODB_TABLE_NAME"),
+    "deduplicated_posts_queue_name": os.getenv("DEDUPLICATED_POSTS_QUEUE_NAME"),
+    "preprocessed_posts_queue_name": os.getenv("PREPROCESSED_POSTS_QUEUE_NAME"),
+    "dead_letter_queue_name": os.getenv("DEAD_LETTER_QUEUE_NAME"),
+    "sns_topic_name": os.getenv("SNS_TOPIC_NAME"),
+    "s3_bucket_name": os.getenv("S3_BUCKET_NAME"),
+    "website_bucket_name": os.getenv("WEBSITE_BUCKET_NAME"),
+    "website_url": os.getenv("WEBSITE_URL"),
+    "api_gateway_api_id": os.getenv("API_GATEWAY_API_ID"),
+    "aws_region": os.getenv("AWS_REGION"),
+    "single_job_base_link": os.getenv("SINGLE_JOB_BASE_LINK")
+}
+
 
 app = cdk.App()
-CdkStack(app, "CdkStack",
+CdkStack(app, "CdkStack", config,
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.
