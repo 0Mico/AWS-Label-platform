@@ -258,11 +258,17 @@ class CdkStack(Stack):
         website_deployment = S3Deploy.BucketDeployment(
             self,
             "WebsiteDeployment",
-            sources = [
-                S3Deploy.Source.asset(website_path),
-                S3Deploy.Source.data(website_path + "/js/config.js", config_js_content)    
-            ],
+            sources = [S3Deploy.Source.asset(website_path)],
             destination_bucket = self.website_bucket,
+        )
+
+        # Deploy config.js file into the bucket in a specific path
+        config_deployment = S3Deploy.BucketDeployment(
+            self,
+            "ConfigFileDeployment",    
+            sources = [S3Deploy.Source.data(website_path + "/js/config.js", config_js_content)],
+            destination_bucket = self.website_bucket,
+            destination_key_prefix = "js/",
         )
 
 
