@@ -254,7 +254,7 @@ class CdkStack(Stack):
             )
         )
 
-        # Deploy website files into the bucket
+        # Deploy website files into the bucket. This will ignore the config.js because it is in the gitignore
         website_deployment = S3Deploy.BucketDeployment(
             self,
             "WebsiteDeployment",
@@ -364,7 +364,7 @@ class CdkStack(Stack):
             rest_api_name = "Label-app-API",
             description = "API for the Label App",
             default_cors_preflight_options = APIGateway.CorsOptions(
-                allow_origins = [self.website_bucket.bucket_website_url, "http://localhost:3000"],
+                allow_origins = [os.getenv("WEBSITE_URL")],
                 allow_methods = ["GET", "POST"]
             )
         )
