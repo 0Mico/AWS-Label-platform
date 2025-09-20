@@ -31,11 +31,6 @@ website_path = str(Path(__file__).parent.parent.parent / "webapp")
 env_path = Path(__file__).parent / '.env'
 
 
-config_js_content = f"""const CONFIG = {{     
-    API_ID: '{api_id}',     
-    AWS_REGION: '{aws_region}' 
-}};"""
-
 class CdkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -44,8 +39,6 @@ class CdkStack(Stack):
 
         dotenv.load_dotenv(env_path)
 
-        api_id = os.getenv("API_GATEWAY_API_ID")
-        aws_region = os.getenv("AWS_REGION")
         website_url = os.getenv("WEBSITE_URL")
 
 
