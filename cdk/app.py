@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import os
-import dotenv
-from pathlib import Path
+#import dotenv
+#from pathlib import Path
 import aws_cdk as cdk
 
 from cdk.cdk_stack import CdkStack
-
+"""
 env_path = Path(__file__).parent / "cdk" / ".env"
 print(f"Loading .env from: {env_path}")
 
@@ -27,7 +27,7 @@ config = {
     "api_gateway_api_id": os.getenv("API_GATEWAY_API_ID"),
     "aws_region": os.getenv("AWS_REGION"),
 }
-
+"""
 
 app = cdk.App()
 CdkStack(app, "CdkStack",
