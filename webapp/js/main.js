@@ -7,7 +7,7 @@ let jobTokensLabels = {};
 let currentTokens = [];
 
 // API Configuration
-const API_BASE_URL = `https://${CONFIG.API_ID}.execute-api.${CONFIG.AWS_REGION}.amazonaws.com/prod`
+const API_BASE_URL = `https://${CONFIG.API_ID}.execute-api.${CONFIG.AWS_REGION}.amazonaws.com/`
 const API_ENDPOINTS = {
     fetchJobs: `${API_BASE_URL}/Job-Posts`,
     saveJobs: `${API_BASE_URL}/Job-Posts`
