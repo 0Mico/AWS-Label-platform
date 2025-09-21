@@ -351,13 +351,15 @@ class CdkStack(Stack):
             self,
             "LabelAppAPI",
             rest_api_name = "Label-app-API",
-            description = "API for the Label App",
-            default_cors_preflight_options = APIGateway.CorsOptions(
-                allow_origins = ["http://cdkstack-websitebucket75c24d94-ikl37y2rogki.s3-website.eu-north-1.amazonaws.com"],
-                allow_methods = ["GET", "POST"]
-            )
+            description = "API for the Label App"
         )
+
         jobs_resource = self.api_gateway.root.add_resource("Job-Posts")
+        jobs_resource.add_cors_preflight(
+            allow_origins = ["*"],
+            allow_methods = ["GET", "POST", "OPTIONS"],
+            allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
+        )
         jobs_resource.add_method(
             "GET",
             APIGateway.LambdaIntegration(fetch_posts),
