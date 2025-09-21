@@ -353,7 +353,7 @@ class CdkStack(Stack):
             rest_api_name = "Label-app-API",
             description = "API for the Label App",
             default_cors_preflight_options = APIGateway.CorsOptions(
-                allow_origins = [self.config["website_url"]],
+                allow_origins = ["http://cdkstack-websitebucket75c24d94-ikl37y2rogki.s3-website.eu-north-1.amazonaws.com"],
                 allow_methods = ["GET", "POST"]
             )
         )
