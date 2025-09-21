@@ -351,7 +351,11 @@ class CdkStack(Stack):
             self,
             "LabelAppAPI",
             rest_api_name = "Label-app-API",
-            description = "API for the Label App"
+            description = "API for the Label App",
+            deploy = True,
+            deploy_options = APIGateway.StageOptions(
+                stage_name = "prod"
+            )
         )
 
         jobs_resource = self.api_gateway.root.add_resource("Job-Posts")
