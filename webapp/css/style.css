@@ -199,6 +199,10 @@ body {
     position: relative;
 }
 
+.highlighted-token {
+    color: #000;
+}
+
 .label-panel {
     width: 300px;
     background-color: #252526;

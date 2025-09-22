@@ -30,7 +30,6 @@ function setupEventListeners() {
     });
 
     // Text selection for labeling
-    // document.addEventListener('mouseup', handleTextSelection);
     document.getElementById('editor-content').addEventListener('click', handleTokenClick);
 }
 
@@ -62,25 +61,21 @@ async function loadJobPosts() {
 }
 
 function clearAllJobPosts() {
-    showMessage('Clear all job posts from the list?', 'confirm', (result) => {
-        if (result) {
-            currentJobPosts = [];
-            currentSelectedJob = null;
-            renderJobList();
+    currentJobPosts = [];
+    currentSelectedJob = null;
+    renderJobList();
             
-            // Clear the editor content
-            const editorTitle = document.getElementById('editor-title');
-            const editorContent = document.getElementById('editor-content');
-            editorTitle.textContent = 'Select a job post to start labeling';
-            editorContent.innerHTML = `
-                <div class="no-selection">
-                    <p>Select a job post from the left panel to begin labeling.</p>
-                </div>
-            `;
+    // Clear the editor content
+    const editorTitle = document.getElementById('editor-title');
+    const editorContent = document.getElementById('editor-content');
+    editorTitle.textContent = 'Select a job post to start labeling';
+    editorContent.innerHTML = `
+        <div class="no-selection">
+            <p>Select a job post from the left panel to begin labeling.</p>
+        </div>
+        `;
             
-            updateStatus('All job posts cleared');
-        }
-    });
+    updateStatus('All job posts cleared');
 }
 
 function renderJobList() {
@@ -119,24 +114,6 @@ function renderJobContent() {
 
     editorTitle.textContent = `${currentSelectedJob.title} - ${currentSelectedJob.company}`;
 
-    // Apply existing labels to the content
-    /*let content = currentSelectedJob.description;
-    if (jobLabels[currentSelectedJob.id]) {
-        jobLabels[currentSelectedJob.id].forEach(labelData => {
-            const regex = new RegExp(labelData.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            content = content.replace(regex, `<span class="highlighted" style="background-color: ${labelData.color}" data-label="${labelData.label}">${labelData.text}</span>`);
-        });
-    }
-
-    editorContent.innerHTML = `
-                <div class="job-content">
-                    <div class="job-header">
-                        <h2>${currentSelectedJob.title}</h2>
-                        <div class="job-meta">${currentSelectedJob.company}</div>
-                    </div>
-                    <div class="job-description" id="job-description">${content}</div>
-                </div>
-            `;*/
     const tokenSpans = currentSelectedJob.tokens.map(token => {
         const label = labels.find(l => l.name === token.label);
         const color = label ? label.color : '';
@@ -324,29 +301,4 @@ async function saveLabels() {
 
 function updateStatus(message) {
     document.getElementById('status-text').textContent = message;
-}
-
-function showMessage(message, type = 'alert', callback = null) {
-    const modalContainer = document.getElementById('modal-container');
-    const modalMessage = document.getElementById('modal-message');
-    const okBtn = document.getElementById('modal-ok-btn');
-    const cancelBtn = document.getElementById('modal-cancel-btn');
-
-    modalMessage.textContent = message;
-    modalContainer.style.display = 'flex';
-
-    okBtn.onclick = () => {
-        modalContainer.style.display = 'none';
-        if (callback) callback(true);
-    };
-
-    if (type === 'confirm') {
-        cancelBtn.style.display = 'inline-block';
-        cancelBtn.onclick = () => {
-            modalContainer.style.display = 'none';
-            if (callback) callback(false);
-        };
-    } else {
-        cancelBtn.style.display = 'none';
-    }
 }
