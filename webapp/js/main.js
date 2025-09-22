@@ -7,6 +7,10 @@ let selectedLabel = null;
 let selectedColor = '#ffd700';
 let jobTokensLabels = {};
 let currentTokens = [];
+let deletionHistory = []; // Track deletions for undo functionality
+let isSelecting = false;
+let selectionStart = null;
+let selectedTokens = new Set();
 
 // API Configuration
 const API_BASE_URL = `https://${CONFIG.API_ID}.execute-api.${CONFIG.AWS_REGION}.amazonaws.com/prod`
@@ -32,8 +36,247 @@ function setupEventListeners() {
         });
     });
 
-    // Text selection for labeling
-    document.getElementById('editor-content').addEventListener('click', handleTokenClick);
+    // Editor content event listeners
+    const editorContent = document.getElementById('editor-content');
+    editorContent.addEventListener('click', handleTokenClick);
+    editorContent.addEventListener('contextmenu', handleTokenRightClick);
+    editorContent.addEventListener('mousedown', handleMouseDown);
+    editorContent.addEventListener('mousemove', handleMouseMove);
+    editorContent.addEventListener('mouseup', handleMouseUp);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyDown);
+}
+
+function handleKeyDown(event) {
+    if (!currentSelectedJob) return;
+    
+    // Delete selected tokens with Delete or Backspace
+    if ((event.key === 'Delete' || event.key === 'Backspace') && selectedTokens.size > 0) {
+        event.preventDefault();
+        deleteSelectedTokens();
+    }
+    
+    // Undo with Ctrl+Z
+    if (event.ctrlKey && event.key === 'z') {
+        event.preventDefault();
+        undoLastDeletion();
+    }
+    
+    // Select all with Ctrl+A
+    if (event.ctrlKey && event.key === 'a') {
+        event.preventDefault();
+        selectAllTokens();
+    }
+    
+    // Clear selection with Escape
+    if (event.key === 'Escape') {
+        clearSelection();
+    }
+}
+
+function handleMouseDown(event) {
+    const tokenElement = event.target.closest('span[data-token-id]');
+    if (tokenElement) {
+        isSelecting = true;
+        selectionStart = parseInt(tokenElement.dataset.tokenId);
+        
+        // If not holding Ctrl, clear previous selection
+        if (!event.ctrlKey) {
+            clearSelection();
+        }
+        
+        // Add/remove token from selection
+        toggleTokenSelection(selectionStart);
+        event.preventDefault();
+    }
+}
+
+function handleMouseMove(event) {
+    if (isSelecting && selectionStart !== null) {
+        const tokenElement = event.target.closest('span[data-token-id]');
+        if (tokenElement) {
+            const currentTokenId = parseInt(tokenElement.dataset.tokenId);
+            selectTokenRange(selectionStart, currentTokenId);
+        }
+    }
+}
+
+function handleMouseUp(event) {
+    isSelecting = false;
+    selectionStart = null;
+}
+
+function handleTokenClick(event) {
+    const tokenElement = event.target.closest('span[data-token-id]');
+    if (tokenElement && selectedLabel) {
+        // If tokens are selected, apply label to all selected tokens
+        if (selectedTokens.size > 0) {
+            applyLabelToSelectedTokens();
+        } else {
+            // Single token labeling
+            const tokenId = parseInt(tokenElement.dataset.tokenId);
+            const token = currentSelectedJob.tokens.find(t => t.id === tokenId);
+            if (token) {
+                if (selectedLabel.id === 'unlabeled') {
+                    token.label = '';
+                } else {
+                    token.label = selectedLabel.name;
+                }
+                renderJobContent();
+            }
+        }
+    }
+}
+
+function handleTokenRightClick(event) {
+    event.preventDefault();
+    const tokenElement = event.target.closest('span[data-token-id]');
+    if (tokenElement) {
+        const tokenId = parseInt(tokenElement.dataset.tokenId);
+        
+        // If token is not selected, select only this token
+        if (!selectedTokens.has(tokenId)) {
+            clearSelection();
+            toggleTokenSelection(tokenId);
+        }
+        
+        // Show context menu or delete immediately
+        if (confirm(`Delete ${selectedTokens.size} token(s)?`)) {
+            deleteSelectedTokens();
+        }
+    }
+}
+
+function toggleTokenSelection(tokenId) {
+    if (selectedTokens.has(tokenId)) {
+        selectedTokens.delete(tokenId);
+    } else {
+        selectedTokens.add(tokenId);
+    }
+    updateTokenVisualSelection();
+}
+
+function selectTokenRange(startId, endId) {
+    const start = Math.min(startId, endId);
+    const end = Math.max(startId, endId);
+    
+    // Clear previous selection
+    selectedTokens.clear();
+    
+    // Select range
+    for (let i = start; i <= end; i++) {
+        const token = currentSelectedJob.tokens.find(t => t.id === i);
+        if (token) {
+            selectedTokens.add(i);
+        }
+    }
+    
+    updateTokenVisualSelection();
+}
+
+function selectAllTokens() {
+    selectedTokens.clear();
+    currentSelectedJob.tokens.forEach(token => {
+        selectedTokens.add(token.id);
+    });
+    updateTokenVisualSelection();
+    updateStatus(`Selected ${selectedTokens.size} tokens`);
+}
+
+function clearSelection() {
+    selectedTokens.clear();
+    updateTokenVisualSelection();
+}
+
+function updateTokenVisualSelection() {
+    // Update visual selection state
+    document.querySelectorAll('span[data-token-id]').forEach(span => {
+        const tokenId = parseInt(span.dataset.tokenId);
+        if (selectedTokens.has(tokenId)) {
+            span.classList.add('selected-token');
+        } else {
+            span.classList.remove('selected-token');
+        }
+    });
+    
+    // Update status
+    if (selectedTokens.size > 0) {
+        updateStatus(`${selectedTokens.size} token(s) selected`);
+    } else {
+        updateStatus('Ready');
+    }
+}
+
+function applyLabelToSelectedTokens() {
+    if (!selectedLabel || selectedTokens.size === 0) return;
+    
+    selectedTokens.forEach(tokenId => {
+        const token = currentSelectedJob.tokens.find(t => t.id === tokenId);
+        if (token) {
+            if (selectedLabel.id === 'unlabeled') {
+                token.label = '';
+            } else {
+                token.label = selectedLabel.name;
+            }
+        }
+    });
+    
+    clearSelection();
+    renderJobContent();
+    updateStatus(`Applied "${selectedLabel.name}" label to ${selectedTokens.size} tokens`);
+}
+
+function deleteSelectedTokens() {
+    if (selectedTokens.size === 0) return;
+    
+    // Store deletion for undo
+    const deletedTokens = currentSelectedJob.tokens.filter(token => selectedTokens.has(token.id));
+    deletionHistory.push({
+        tokens: deletedTokens,
+        timestamp: Date.now()
+    });
+    
+    // Remove tokens from the job
+    currentSelectedJob.tokens = currentSelectedJob.tokens.filter(token => !selectedTokens.has(token.id));
+    
+    // Re-assign sequential IDs to remaining tokens
+    currentSelectedJob.tokens.forEach((token, index) => {
+        token.id = index;
+        token.position = index;
+    });
+    
+    const deletedCount = selectedTokens.size;
+    clearSelection();
+    renderJobContent();
+    updateStatus(`Deleted ${deletedCount} token(s). Press Ctrl+Z to undo.`);
+}
+
+function undoLastDeletion() {
+    if (deletionHistory.length === 0) {
+        updateStatus('Nothing to undo');
+        return;
+    }
+    
+    const lastDeletion = deletionHistory.pop();
+    
+    // Add back the deleted tokens (this is a simplified restoration)
+    // Note: This won't perfectly restore the original positions
+    lastDeletion.tokens.forEach(token => {
+        currentSelectedJob.tokens.push(token);
+    });
+    
+    // Re-sort tokens by original position if available
+    currentSelectedJob.tokens.sort((a, b) => (a.position || a.id) - (b.position || b.id));
+    
+    // Re-assign sequential IDs
+    currentSelectedJob.tokens.forEach((token, index) => {
+        token.id = index;
+        token.position = index;
+    });
+    
+    renderJobContent();
+    updateStatus(`Restored ${lastDeletion.tokens.length} token(s)`);
 }
 
 // Load job posts from API
@@ -66,6 +309,8 @@ async function loadJobPosts() {
 function clearAllJobPosts() {
     currentJobPosts = [];
     currentSelectedJob = null;
+    deletionHistory = [];
+    clearSelection();
     renderJobList();
             
     // Clear the editor content
@@ -93,6 +338,7 @@ function renderJobList() {
                 <div class="job-item" onclick="selectJob('${job.id}')">
                     <div class="job-title">${job.title}</div>
                     <div class="job-company">${job.company}</div>
+                    <div class="job-stats">${job.tokens.length} tokens</div>
                 </div>
             `).join('');
 }
@@ -107,6 +353,8 @@ function selectJob(jobId) {
     // Find and display the job
     currentSelectedJob = currentJobPosts.find(job => job.id === jobId);
     if (currentSelectedJob) {
+        deletionHistory = [];
+        clearSelection();
         renderJobContent();
     }
 }
@@ -115,7 +363,7 @@ function renderJobContent() {
     const editorTitle = document.getElementById('editor-title');
     const editorContent = document.getElementById('editor-content');
 
-    editorTitle.textContent = `${currentSelectedJob.title} - ${currentSelectedJob.company}`;
+    editorTitle.textContent = `${currentSelectedJob.title} - ${currentSelectedJob.company} (${currentSelectedJob.tokens.length} tokens)`;
 
     const tokenSpans = currentSelectedJob.tokens.map(token => {
         const label = labels.find(l => l.name === token.label);
@@ -128,28 +376,16 @@ function renderJobContent() {
         <div class="job-content">
             <div class="job-header">
                 <h2>${currentSelectedJob.title}</h2>
-                <div class="job-meta">${currentSelectedJob.company}</div>
+                <div class="job-meta">${currentSelectedJob.company} • ${currentSelectedJob.tokens.length} tokens</div>
+            </div>
+            <div class="editing-instructions">
+                <p><strong>Instructions:</strong> Click tokens to label • Right-click or select + Delete to remove • Ctrl+A to select all • Ctrl+Z to undo • Esc to clear selection</p>
             </div>
             <div class="job-description" id="job-description">
                 ${tokenSpans}
             </div>
         </div>
     `;
-}
-
-function handleTokenClick(event) {
-    const tokenElement = event.target.closest('span');
-    if (tokenElement) {
-        const tokenId = parseInt(tokenElement.dataset.tokenId);
-        const token = currentSelectedJob.tokens.find(t => t.id === tokenId);
-        if (token) {
-            if (selectedLabel.id === 'unlabeled') {
-                token.label = '';
-            } else
-                token.label = selectedLabel.name;
-            renderJobContent(); // Re-render to show the new label
-        }
-    }
 }
 
 function createLabel() {
@@ -228,8 +464,8 @@ function clearLabels() {
 }
 
 async function saveLabels() {
-    if (!currentSelectedJob || !jobLabels[currentSelectedJob.id]) {
-        alert('No labels to save');
+    if (!currentSelectedJob) {
+        alert('No job selected to save');
         return;
     }
 
@@ -239,7 +475,7 @@ async function saveLabels() {
         const payload = {
             jobId: currentSelectedJob.id,
             tokens: currentSelectedJob.tokens,
-            labels: jobLabels[currentSelectedJob.id],
+            totalTokens: currentSelectedJob.tokens.length,
             timestamp: new Date().toISOString()
         };
 
