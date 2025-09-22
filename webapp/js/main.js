@@ -1,6 +1,8 @@
 let currentJobPosts = [];
 let currentSelectedJob = null;
-let labels = [];
+let labels = [
+    { id: 'unlabeled', name: 'Unlabeled', color: '#666', isDeletable: false }
+];
 let selectedLabel = null;
 let selectedColor = '#ffd700';
 let jobTokensLabels = {};
@@ -134,51 +136,16 @@ function renderJobContent() {
     `;
 }
 
-/*function handleTextSelection() {
-    if (!currentSelectedJob || !selectedLabel) return;
-
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-
-    if (selectedText.length > 0) {
-        const range = selection.getRangeAt(0);
-        const span = document.createElement('span');
-        span.className = 'highlighted';
-        span.style.backgroundColor = selectedLabel.color;
-        span.dataset.label = selectedLabel.name;
-
-        try {
-            range.surroundContents(span);
-
-            // Store the label
-            if (!jobLabels[currentSelectedJob.id]) {
-                jobLabels[currentSelectedJob.id] = [];
-            }
-            jobLabels[currentSelectedJob.id].push({
-                text: selectedText,
-                label: selectedLabel.name,
-                color: selectedLabel.color
-            });
-
-            selection.removeAllRanges();
-        } catch (e) {
-            console.warn('Could not apply label to selection:', e);
-        }
-    }
-}*/
-
 function handleTokenClick(event) {
-    if (!selectedLabel) {
-        showMessage('Please select a label from the right panel first.');
-        return;
-    }
-
     const tokenElement = event.target.closest('span');
     if (tokenElement) {
         const tokenId = parseInt(tokenElement.dataset.tokenId);
         const token = currentSelectedJob.tokens.find(t => t.id === tokenId);
         if (token) {
-            token.label = selectedLabel.name;
+            if (selectedLabel.id === 'unlabeled') {
+                token.label = '';
+            } else
+                token.label = selectedLabel.name;
             renderJobContent(); // Re-render to show the new label
         }
     }
@@ -224,7 +191,7 @@ function renderLabelsList() {
                         ${label.name}
                     </div>
                     <div class="label-actions">
-                        <button class="btn-small" onclick="deleteLabel('${label.id}'); event.stopPropagation();">×</button>
+                        ${label.isDeletable !== false ? `<button class="btn-small" onclick="deleteLabel('${label.id}'); event.stopPropagation();">×</button>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -237,6 +204,10 @@ function selectLabel(labelId) {
 }
 
 function deleteLabel(labelId) {
+    const labelToDelete = labels.find(l => l.id === labelId);
+    if (labelToDelete && labelToDelete.isDeletable === false) {
+        return;
+    }
     if (confirm('Are you sure you want to delete this label?')) {
         labels = labels.filter(l => l.id !== labelId);
         if (selectedLabel?.id === labelId) {
@@ -250,19 +221,9 @@ function deleteLabel(labelId) {
 function clearLabels() {
     if (!currentSelectedJob) return;
 
-    /*if (confirm('Clear all labels for this job post?')) {
-        delete jobLabels[currentSelectedJob.id];
-        renderJobContent();
-        updateStatus('Labels cleared');
-    }*/
-
-    showMessage('Clear all labels for this job post?', 'confirm', (result) => {
-        if (result) {
-            currentSelectedJob.tokens.forEach(token => token.label = '');
-            renderJobContent();
-            updateStatus('Labels cleared');
-        }
-    });
+    currentSelectedJob.tokens.forEach(token => token.label = '');
+    renderJobContent();
+    updateStatus('Labels cleared');
 }
 
 async function saveLabels() {
@@ -290,7 +251,6 @@ async function saveLabels() {
         //     body: JSON.stringify(payload)
         // });
 
-        // Mock success for demo
         console.log('Would save:', payload);
         updateStatus('Labels saved successfully');
     } catch (error) {
