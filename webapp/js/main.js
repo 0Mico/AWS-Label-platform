@@ -1,7 +1,7 @@
 let currentJobPosts = [];
 let currentSelectedJob = null;
 let labels = [
-    { id: 'unlabeled', name: 'Unlabeled', color: '#666', isDeletable: false }
+    { id: 'unlabeled', name: 'Unlabeled', color: '#666' }
 ];
 let selectedLabel = null;
 let selectedColor = '#ffd700';
@@ -19,6 +19,7 @@ const API_ENDPOINTS = {
 document.addEventListener('DOMContentLoaded', function () {
     setupEventListeners();
     loadJobPosts();
+    renderLabelsList();
 });
 
 function setupEventListeners() {
@@ -191,7 +192,7 @@ function renderLabelsList() {
                         ${label.name}
                     </div>
                     <div class="label-actions">
-                        ${label.isDeletable !== false ? `<button class="btn-small" onclick="deleteLabel('${label.id}'); event.stopPropagation();">×</button>` : ''}
+                        ${label.name !== 'Unlabeled' ? `<button class="btn-small" onclick="deleteLabel('${label.id}'); event.stopPropagation();">×</button>` : ''}
                     </div>
                 </div>
             `).join('');
