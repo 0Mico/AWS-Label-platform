@@ -72,7 +72,7 @@ body {
 
 .job-list {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
 .job-item {
@@ -157,7 +157,8 @@ body {
 .editor-content {
     flex: 1;
     padding: 20px;
-    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: scroll;
     line-height: 1.6;
 }
 

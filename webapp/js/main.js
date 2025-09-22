@@ -142,7 +142,7 @@ function renderJobContent() {
         const color = label ? label.color : '';
         const tokenClass = label ? 'highlighted-token' : 'token';
         return `<span class="${tokenClass}" style="background-color: ${color}" data-token-id="${token.id}">${token.text}</span>`;
-    }).join('');
+    }).join(' ');
 
     editorContent.innerHTML = `
         <div class="job-content">
