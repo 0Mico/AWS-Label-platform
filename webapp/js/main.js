@@ -42,18 +42,45 @@ async function loadJobPosts() {
         const response = await fetch(API_ENDPOINTS.fetchJobs);
         const data = await response.json();
 
-        currentJobPosts = data.jobs.map(job => ({
+        const newJobs = data.jobs.map(job => ({
             id: job.Job_ID,
             title: job.Title,
             company: job.Company,
             tokens: job.Tokens
-        }));
+        }))
+
+        const existingJobIds = currentJobPosts.map(job => job.id);
+        const newJobsToAdd = newJobs.filter(job => !existingJobIds.includes(job.id));
+
+        currentJobPosts.push(...newJobsToAdd);
         renderJobList();
         updateStatus('Ready');
     } catch (error) {
         console.error('Failed to load job posts:', error);
         updateStatus('Error loading job posts');
     }
+}
+
+function clearAllJobPosts() {
+    showMessage('Clear all job posts from the list?', 'confirm', (result) => {
+        if (result) {
+            currentJobPosts = [];
+            currentSelectedJob = null;
+            renderJobList();
+            
+            // Clear the editor content
+            const editorTitle = document.getElementById('editor-title');
+            const editorContent = document.getElementById('editor-content');
+            editorTitle.textContent = 'Select a job post to start labeling';
+            editorContent.innerHTML = `
+                <div class="no-selection">
+                    <p>Select a job post from the left panel to begin labeling.</p>
+                </div>
+            `;
+            
+            updateStatus('All job posts cleared');
+        }
+    });
 }
 
 function renderJobList() {
