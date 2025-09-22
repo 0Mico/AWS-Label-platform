@@ -69,7 +69,6 @@ def lambda_handler(event, context):
 
             except Exception as e:
                 print(f"Error parsing job body: {e}")
-                description = 'No description found'
 
             print(f"Processing message: {job}")
 

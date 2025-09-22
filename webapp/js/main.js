@@ -42,7 +42,7 @@ async function loadJobPosts() {
         const response = await fetch(API_ENDPOINTS.fetchJobs);
         const data = await response.json();
 
-        currentJobPosts = data.map(job => ({
+        currentJobPosts = data.jobs.map(job => ({
             id: job.Job_ID,
             title: job.Title,
             company: job.Company,
