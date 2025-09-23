@@ -260,8 +260,6 @@ function undoLastDeletion() {
     
     const lastDeletion = deletionHistory.pop();
     
-    // Add back the deleted tokens (this is a simplified restoration)
-    // Note: This won't perfectly restore the original positions
     lastDeletion.tokens.forEach(token => {
         currentSelectedJob.tokens.push(token);
     });
@@ -379,7 +377,7 @@ function renderJobContent() {
                 <div class="job-meta">${currentSelectedJob.company} • ${currentSelectedJob.tokens.length} tokens</div>
             </div>
             <div class="editing-instructions">
-                <p><strong>Instructions:</strong> Click tokens to label • Right-click or select + Delete to remove • Ctrl+A to select all • Ctrl+Z to undo • Esc to clear selection</p>
+                <p><strong>Instructions:</strong> Click tokens to label  •  Right-click or select + Delete to remove  •  Ctrl+A to select all  •  Ctrl+Z to undo  •  Esc to clear selection</p>
             </div>
             <div class="job-description" id="job-description">
                 ${tokenSpans}

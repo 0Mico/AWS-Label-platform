@@ -4,14 +4,77 @@ import awsutils as aws_ut
 from transformers import AutoTokenizer
 
 
-def _tokenizeText(tokenizer: AutoTokenizer, text: str):
-    return tokenizer.tokenize(text)
+# Predict how many tokens the text will generate.
+def _predictTokenCount(tokenizer: AutoTokenizer, text: str) -> int:
+    estimated_tokens = len(text) // 3  
+    return estimated_tokens
+
+
+# Calculate optimal number of words per chunk to stay under token limit.
+def _calculateWordsPerChunk(max_tokens: int) -> int:
+    words_per_chunk = max_tokens // 2   # Estimate 2 tokens per word
+    words_per_chunk = int(words_per_chunk * 0.9)  # Add safety margin
     
+    return words_per_chunk
+
+# Divides the text in chunks containing a certain number of words
+def _chunkTextByWordCount(text: str, words_per_chunk: int = 100) -> list:
+    words = text.split()
+    chunks = []
+    
+    # Create chunks of specified word count
+    for i in range(0, len(words), words_per_chunk):
+        chunk_words = words[i:i + words_per_chunk]
+        chunk_text = ' '.join(chunk_words)
+        chunks.append(chunk_text)
+    
+    return chunks
+
+
+def _tokenizeText(tokenizer: AutoTokenizer, text: str, max_tokens: int) -> list:
+    # Step 1: Predict token count
+    estimated_tokens = _predictTokenCount(tokenizer, text)
+    print(f"Estimated tokens: {estimated_tokens}")
+    
+    # Step 2: Check if chunking is needed
+    if estimated_tokens <= max_tokens:
+        tokens = tokenizer.tokenize(text)
+        print(f"Text tokenized directly: {len(tokens)} tokens")
+        return tokens
+    
+    # Step 3: Text exceeds limit, calculate optimal words per chunk
+    words_per_chunk = _calculateWordsPerChunk(max_tokens)
+    print(f"Text exceeds {max_tokens} tokens, dividing into chunks of {words_per_chunk} words each")
+    
+    # Step 4: Divide into word-based chunks
+    chunks = _chunkTextByWordCount(text, words_per_chunk)
+    print(f"Text divided into {len(chunks)} chunks")
+    
+    # Step 5: Tokenize each chunk and concatenate
+    all_tokens = []
+    
+    for i, chunk in enumerate(chunks):
+        chunk_tokens = tokenizer.tokenize(chunk)
+        all_tokens.extend(chunk_tokens)
+        
+        # Safety check: warn if any chunk still exceeds limit
+        if len(chunk_tokens) > max_tokens:
+            print(f"WARNING: Chunk {i+1} has {len(chunk_tokens)} tokens (exceeds {max_tokens})")
+        else:
+            print(f"Chunk {i+1}: {len(chunk_tokens)} tokens ({len(chunk.split())} words)")
+    
+    total_tokens = len(all_tokens)
+    print(f"Total tokens after chunking: {total_tokens}")
+    
+    return all_tokens
+
+
 
 def lambda_handler(event, context):
     sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
     sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
     tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-uncased")
+    text_max_tokens = 512
 
     
     if not sqs_queue_url:
@@ -34,7 +97,7 @@ def lambda_handler(event, context):
             try:
                 job_data = json.loads(job)
                 job_description = job_data.get("Description")
-                job_tokenized = _tokenizeText(tokenizer, job_description)
+                job_tokenized = _tokenizeText(tokenizer, job_description, text_max_tokens)
                 filtered_job = {
                     "Job_ID": job_data.get("Job_ID"),
                     "Title": job_data.get("Title"),
