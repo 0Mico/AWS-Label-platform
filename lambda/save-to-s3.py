@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         labeled_job_post = event["body"]
 
         json_labeled_job_post = json.loads(labeled_job_post)
-        job_title = json_labeled_job_post.get("Title")
+        job_title = json_labeled_job_post.get("title")
         timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
 
         filename = f"{job_title}-{timestamp}"
