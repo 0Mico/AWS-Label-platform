@@ -461,23 +461,52 @@ function clearLabels() {
     updateStatus('Labels cleared');
 }
 
+function createLabeledTokensList(tokens) {
+    const labeledTokens = [];
+    let tokenId = 0;
+
+    for (const token of tokens) {
+        let userLabel = 'O';
+        if (token.label && token.label.trim() !== '' && token.label !== 'Unlabeled') {
+            userLabel = token.label;
+        }
+
+        labeledTokens.push({
+            id: tokenId,
+            text: token.text,
+            label: userLabel,
+            position: tokenId
+        });
+
+        tokenId++;
+    }
+
+    return labeledTokens;
+}
+
 async function saveLabels() {
     if (!currentSelectedJob) {
         alert('No job selected to save');
         return;
     }
 
+    if (!confirm('Are you sure you want to save the labels? Once saved, you cannot modify this job post anymore and it will be removed from the list.')) {
+        return;
+    }
+
     try {
         updateStatus('Saving labels...');
 
+        const labeledTokens = createLabeledTokensList(currentSelectedJob.tokens);
         const payload = {
             jobId: currentSelectedJob.id,
-            tokens: currentSelectedJob.tokens,
-            totalTokens: currentSelectedJob.tokens.length,
+            title: currentSelectedJob.title,
+            tokens: labeledTokens,
+            totalTokens: labeledTokens.length,
         };
 
         const response = await fetch(API_ENDPOINTS.saveJobs, {
-        method: 'POST',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -486,10 +515,11 @@ async function saveLabels() {
 
         // Delete job from the left column list
         currentJobPosts = currentJobPosts.filter(job => job.id !== currentSelectedJob.id);
+        currentSelectedJob = null;
+        deletionHistory = [];
         renderJobList();
 
         // Clear the editor
-        currentSelectedJob = null;
         const editorTitle = document.getElementById('editor-title');
         const editorContent = document.getElementById('editor-content');
         editorTitle.textContent = 'Select a job post to start labeling';
