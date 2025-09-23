@@ -474,20 +474,33 @@ async function saveLabels() {
             jobId: currentSelectedJob.id,
             tokens: currentSelectedJob.tokens,
             totalTokens: currentSelectedJob.tokens.length,
-            timestamp: new Date().toISOString()
         };
 
-        // Replace with actual API call:
-        // const response = await fetch(API_ENDPOINTS.saveJobs, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(payload)
-        // });
+        const response = await fetch(API_ENDPOINTS.saveJobs, {
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        // Delete job from the left column list
+        currentJobPosts = currentJobPosts.filter(job => job.id !== currentSelectedJob.id);
+        renderJobList();
+
+        // Clear the editor
+        currentSelectedJob = null;
+        const editorTitle = document.getElementById('editor-title');
+        const editorContent = document.getElementById('editor-content');
+        editorTitle.textContent = 'Select a job post to start labeling';
+        editorContent.innerHTML = `
+        <div class="no-selection">
+            <p>Select a job post from the left panel to begin labeling.</p>
+        </div>
+        `;
 
         console.log('Would save:', payload);
-        updateStatus('Labels saved successfully');
+        updateStatus('Labels saved successfully');          
     } catch (error) {
         console.error('Failed to save labels:', error);
         updateStatus('Error saving labels');
