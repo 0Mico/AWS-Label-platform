@@ -248,7 +248,8 @@ class CdkStack(Stack):
             self,
             "WebsiteDeployment",
             sources = [S3Deploy.Source.asset(website_path)],
-            destination_bucket = self.website_bucket,
+            include = [website_path + "/js/config.js"],
+            destination_bucket = self.website_bucket
         )
 
 
