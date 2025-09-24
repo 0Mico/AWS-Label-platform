@@ -53,7 +53,7 @@ def _tokenizeText(tokenizer: AutoTokenizer, text: str, max_tokens: int):
     for i, chunk in enumerate(chunks):
         chunk_tokens = tokenizer.tokenize(chunk)
         all_tokens.extend(chunk_tokens)
-        k
+        
         if len(chunk_tokens) > max_tokens:
             print(f"WARNING: Chunk {i+1} has {len(chunk_tokens)} tokens (exceeds {max_tokens})")
         else:
