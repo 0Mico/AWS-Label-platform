@@ -4,21 +4,22 @@ import awsutils as aws_ut
 from transformers import AutoTokenizer
 
 
-# Predict how many tokens the text will generate.
-def _predictTokenCount(tokenizer: AutoTokenizer, text: str) -> int:
+# Predict how many tokens the text will generate
+def _predictTokenCount(tokenizer: AutoTokenizer, text: str):
     estimated_tokens = len(text) // 3  
     return estimated_tokens
 
 
-# Calculate optimal number of words per chunk to stay under token limit.
-def _calculateWordsPerChunk(max_tokens: int) -> int:
+# Calculate optimal number of words per chunk to stay under token limit
+def _calculateWordsPerChunk(max_tokens: int):
     words_per_chunk = max_tokens // 2   # Estimate 2 tokens per word
     words_per_chunk = int(words_per_chunk * 0.9)  # Add safety margin
     
     return words_per_chunk
 
+
 # Divides the text in chunks containing a certain number of words
-def _chunkTextByWordCount(text: str, words_per_chunk: int = 100) -> list:
+def _chunkTextByWordCount(text: str, words_per_chunk: int):
     words = text.split()
     chunks = []
     
@@ -31,33 +32,28 @@ def _chunkTextByWordCount(text: str, words_per_chunk: int = 100) -> list:
     return chunks
 
 
-def _tokenizeText(tokenizer: AutoTokenizer, text: str, max_tokens: int) -> list:
-    # Step 1: Predict token count
+def _tokenizeText(tokenizer: AutoTokenizer, text: str, max_tokens: int):
     estimated_tokens = _predictTokenCount(tokenizer, text)
     print(f"Estimated tokens: {estimated_tokens}")
     
-    # Step 2: Check if chunking is needed
     if estimated_tokens <= max_tokens:
         tokens = tokenizer.tokenize(text)
         print(f"Text tokenized directly: {len(tokens)} tokens")
         return tokens
     
-    # Step 3: Text exceeds limit, calculate optimal words per chunk
+    # Text exceeds limit, calculate optimal words per chunk
     words_per_chunk = _calculateWordsPerChunk(max_tokens)
     print(f"Text exceeds {max_tokens} tokens, dividing into chunks of {words_per_chunk} words each")
     
-    # Step 4: Divide into word-based chunks
     chunks = _chunkTextByWordCount(text, words_per_chunk)
     print(f"Text divided into {len(chunks)} chunks")
     
-    # Step 5: Tokenize each chunk and concatenate
     all_tokens = []
     
     for i, chunk in enumerate(chunks):
         chunk_tokens = tokenizer.tokenize(chunk)
         all_tokens.extend(chunk_tokens)
-        
-        # Safety check: warn if any chunk still exceeds limit
+        k
         if len(chunk_tokens) > max_tokens:
             print(f"WARNING: Chunk {i+1} has {len(chunk_tokens)} tokens (exceeds {max_tokens})")
         else:

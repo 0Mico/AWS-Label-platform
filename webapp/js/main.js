@@ -7,7 +7,7 @@ let selectedLabel = null;
 let selectedColor = '#ffd700';
 let jobTokensLabels = {};
 let currentTokens = [];
-let deletionHistory = []; // Track deletions for undo functionality
+let deletionHistory = [];
 let isSelecting = false;
 let selectionStart = null;
 let selectedTokens = new Set();
@@ -86,7 +86,6 @@ function handleMouseDown(event) {
             clearSelection();
         }
         
-        // Add/remove token from selection
         toggleTokenSelection(selectionStart);
         event.preventDefault();
     }
@@ -109,12 +108,10 @@ function handleMouseUp(event) {
 
 function handleTokenClick(event) {
     const tokenElement = event.target.closest('span[data-token-id]');
-    if (tokenElement && selectedLabel) {
-        // If tokens are selected, apply label to all selected tokens
+    if (tokenElement && selectedLabel) {   
         if (selectedTokens.size > 0) {
             applyLabelToSelectedTokens();
         } else {
-            // Single token labeling
             const tokenId = parseInt(tokenElement.dataset.tokenId);
             const token = currentSelectedJob.tokens.find(t => t.id === tokenId);
             if (token) {
@@ -135,13 +132,11 @@ function handleTokenRightClick(event) {
     if (tokenElement) {
         const tokenId = parseInt(tokenElement.dataset.tokenId);
         
-        // If token is not selected, select only this token
         if (!selectedTokens.has(tokenId)) {
             clearSelection();
             toggleTokenSelection(tokenId);
         }
         
-        // Show context menu or delete immediately
         if (confirm(`Delete ${selectedTokens.size} token(s)?`)) {
             deleteSelectedTokens();
         }
@@ -161,10 +156,8 @@ function selectTokenRange(startId, endId) {
     const start = Math.min(startId, endId);
     const end = Math.max(startId, endId);
     
-    // Clear previous selection
     selectedTokens.clear();
     
-    // Select range
     for (let i = start; i <= end; i++) {
         const token = currentSelectedJob.tokens.find(t => t.id === i);
         if (token) {
@@ -190,7 +183,6 @@ function clearSelection() {
 }
 
 function updateTokenVisualSelection() {
-    // Update visual selection state
     document.querySelectorAll('span[data-token-id]').forEach(span => {
         const tokenId = parseInt(span.dataset.tokenId);
         if (selectedTokens.has(tokenId)) {
@@ -200,7 +192,6 @@ function updateTokenVisualSelection() {
         }
     });
     
-    // Update status
     if (selectedTokens.size > 0) {
         updateStatus(`${selectedTokens.size} token(s) selected`);
     } else {
@@ -277,7 +268,6 @@ function undoLastDeletion() {
     updateStatus(`Restored ${lastDeletion.tokens.length} token(s)`);
 }
 
-// Load job posts from API
 async function loadJobPosts() {
     try {
         updateStatus('Loading job posts...');
@@ -342,13 +332,11 @@ function renderJobList() {
 }
 
 function selectJob(jobId) {
-    // Update active state
     document.querySelectorAll('.job-item').forEach(item => {
         item.classList.remove('active');
     });
     event.currentTarget.classList.add('active');
 
-    // Find and display the job
     currentSelectedJob = currentJobPosts.find(job => job.id === jobId);
     if (currentSelectedJob) {
         deletionHistory = [];

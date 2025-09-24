@@ -108,7 +108,7 @@ def _createJobObject(job_card: Tag):
 
     return job
 
-# Make a json object for each job scraped and write it into a json file   
+# Make a json object for each job scraped and send them to dynamoDB and SQS   
 def scrapeJobs(url: str, post_scraped: int, db_table, sqs_queue_url):
     print(url) 
     response = _makeHTTPRequest(url)

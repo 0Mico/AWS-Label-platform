@@ -208,7 +208,7 @@ body {
 .job-description {
     white-space: pre-wrap;
     font-size: 14px;
-    user-select: none; /* Prevent text selection, we handle it manually */
+    user-select: none;
     line-height: 1.8;
 }
 
@@ -388,7 +388,6 @@ body {
     color: #969696;
 }
 
-/* Animation for deleted tokens */
 @keyframes fadeOut {
     0% {
         opacity: 1;
@@ -404,7 +403,6 @@ body {
     animation: fadeOut 0.3s ease-out;
 }
 
-/* Selection highlight animation */
 @keyframes selectPulse {
     0% {
         box-shadow: 0 0 0 2px #0078d4;
@@ -421,7 +419,6 @@ body {
     animation: selectPulse 1s ease-in-out infinite;
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -439,7 +436,6 @@ body {
     background: #4e4e4e;
 }
 
-/* Responsive adjustments */
 @media (max-width: 1200px) {
     .sidebar {
         width: 200px;

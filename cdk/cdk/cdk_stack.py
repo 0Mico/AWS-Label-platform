@@ -41,7 +41,6 @@ class CdkStack(Stack):
         self.job_posts_table = DynamoDB.TableV2(
             self,
             "JobPostsTable",
-            #table_name = self.config["dynamodb_table_name"],
             partition_key = DynamoDB.Attribute(name="Job_ID", type=DynamoDB.AttributeType.STRING),
             billing = DynamoDB.Billing.on_demand(),
             point_in_time_recovery_specification = {
@@ -61,7 +60,6 @@ class CdkStack(Stack):
             queue = SQS.Queue(
                 self,
                 "DeadLetterQueue",
-                #queue_name = self.config["dead_letter_queue_name"],
                 visibility_timeout = Duration.seconds(180),
                 retention_period = Duration.days(14)
             )
@@ -71,7 +69,6 @@ class CdkStack(Stack):
         self.deduplicated_posts_queue = SQS.Queue(
             self,
             "DeduplicatedJobPostsQueue",
-            #queue_name = self.config["deduplicated_posts_queue_name"],
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
@@ -81,7 +78,6 @@ class CdkStack(Stack):
         self.preprocessed_job_posts_queue = SQS.Queue(
             self,
             "PreprocessedJobPostsQueue",
-            #queue_name = self.config["preprocessed_posts_queue_name"],
             visibility_timeout = Duration.seconds(180),
             retention_period = Duration.days(14),
             dead_letter_queue = self.dead_letter_queue
@@ -141,7 +137,6 @@ class CdkStack(Stack):
             allow_all_outbound = True,
             min_capacity = 1,     # Minimum number of EC2 instances
             max_capacity = 2,     # Maximum number of EC2 instances
-            #desired_capacity = 0  # How many instances to start with
         )
         
         # Create Task Definition
@@ -199,7 +194,6 @@ class CdkStack(Stack):
         self.sns_topic = SNS.Topic(
             self,
             "PreprocessedJobPostsTopic",
-            #topic_name = self.config["sns_topic_name"]
         )
 
         # Subscribe the preprocessed job posts SQS queue to the SNS topic
@@ -219,7 +213,6 @@ class CdkStack(Stack):
         self.s3_bucket = S3.Bucket(
             self,
             "LabelAppBucket",
-            #bucket_name = self.config["s3_bucket_name"],
             removal_policy = RemovalPolicy.DESTROY,
             auto_delete_objects = True,
             block_public_access = S3.BlockPublicAccess.BLOCK_ALL,
@@ -230,7 +223,6 @@ class CdkStack(Stack):
         self.website_bucket = S3.Bucket(
             self,
             "WebsiteBucket",
-            #bucket_name = self.config["website_bucket_name"],
             website_index_document = "index.html",
             removal_policy = RemovalPolicy.DESTROY,
             auto_delete_objects = True,
@@ -253,8 +245,8 @@ class CdkStack(Stack):
         )
 
 
-        # ===== LAMBDA FUNCTIONS =====
 
+        # ===== LAMBDA FUNCTIONS =====
 
         # Create docker image for preprocessing lambda function
         preprocessing_image = ECRAssets.DockerImageAsset(
@@ -264,7 +256,7 @@ class CdkStack(Stack):
             asset_name = "Preprocessing-Lambda-Image"
         )
 
-        # Create lambda function to receive messages from the deduplicated queue
+        # Create preprocessing lambda function from the docker image
         preprocessing_lambda = LAMBDA.Function(
             self,
             "PreprocessingJobPostsImage",
