@@ -18,10 +18,8 @@ from aws_cdk import (
     aws_logs as logs
 )
 
-from aws_cdk import BundlingOptions
 from aws_cdk import RemovalPolicy, Duration
 from aws_cdk import aws_s3_deployment as S3Deploy
-from aws_cdk import aws_s3_assets as S3Assets
 from constructs import Construct
 
 
@@ -353,7 +351,7 @@ class CdkStack(Stack):
 
         jobs_resource = self.api_gateway.root.add_resource("Job-Posts")
         jobs_resource.add_cors_preflight(
-            allow_origins = ["*"],
+            allow_origins = ["http://cdkstack-websitebucket75c24d94-ikl37y2rogki.s3-website.eu-north-1.amazonaws.com"],
             allow_methods = ["GET", "POST", "OPTIONS"],
             allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
         )
