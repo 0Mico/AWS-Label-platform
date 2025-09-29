@@ -1,5 +1,3 @@
-import os
-import dotenv
 from pathlib import Path
 
 from aws_cdk import (
