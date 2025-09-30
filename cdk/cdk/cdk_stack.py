@@ -349,7 +349,7 @@ class CdkStack(Stack):
 
         jobs_resource = self.api_gateway.root.add_resource("Job-Posts")
         jobs_resource.add_cors_preflight(
-            allow_origins = ["http://cdkstack-websitebucket75c24d94-ikl37y2rogki.s3-website.eu-north-1.amazonaws.com"],
+            allow_origins = [self.website_bucket.bucket_website_url],
             allow_methods = ["GET", "POST", "OPTIONS"],
             allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
         )
