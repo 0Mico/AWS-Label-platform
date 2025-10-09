@@ -309,7 +309,8 @@ class CdkStack(Stack):
             dead_letter_queue = self.dead_letter_queue.queue,
             function_name = "FetchJobsFromQueue",
             environment = {
-                "PREPROCESSED_JOBS_QUEUE_URL": self.preprocessed_job_posts_queue.queue_url
+                "PREPROCESSED_JOBS_QUEUE_URL": self.preprocessed_job_posts_queue.queue_url,
+                "CORS_ORIGIN": self.website_bucket.bucket_website_url,
             }
         )
         self.preprocessed_job_posts_queue.grant_consume_messages(fetch_posts)
@@ -326,6 +327,7 @@ class CdkStack(Stack):
             function_name = "SaveJobsToS3",
             environment = {
                 "S3_BUCKET_NAME": self.s3_bucket.bucket_name,
+                "CORS_ORIGIN": self.website_bucket.bucket_website_url,
                 "LABELED_POSTS_PREFIX" : "labeled_posts/"
             }
         )

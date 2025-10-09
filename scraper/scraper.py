@@ -151,9 +151,8 @@ def main():
     db_table = aws_ut._retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME"))    
     sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
 
-    keywords = ['Data+Analyst', 'Data+Scientist', 'Cloud+Engineer', 'Devops', 'Frontend+Developer', 'Backend+Developer', 
-                'Software+Engineer', 'Fullstack+Developer', 'Mobile+Developer', 'Game+Developer', 'Artificial+Intelligence',
-                'Python+Developer']
+    keywords = ['Backend+Developer', 'Frontend+Developer', 'Software+Engineer', 'Fullstack+Developer', 'Mobile+Developer', 'Game+Developer',
+                'Data+Analyst', 'Data+Scientist', 'Cloud+Engineer', 'Devops', 'Artificial+Intelligence', 'Python+Developer']
 
     for k in keywords:
         start_url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={k}&geoId=103350119&start=0"

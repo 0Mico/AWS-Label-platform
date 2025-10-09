@@ -6,7 +6,7 @@ from datetime import datetime
 def lambda_handler(event, context):
     s3_bucket_name = os.getenv('S3_BUCKET_NAME')
     cors_headers = {
-        'Access-Control-Allow-Origin': 'http://cdkstack-websitebucket75c24d94-ikl37y2rogki.s3-website.eu-north-1.amazonaws.com',
+        'Access-Control-Allow-Origin': os.getenv('CORS_ORIGIN'),
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token',
         'Content-Type': 'application/json'
