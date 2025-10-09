@@ -231,7 +231,7 @@ class CdkStack(Stack):
             )
         )
 
-        # Deploy website files into the bucket. This will ignore the config.js because it is in the gitignore
+        # Deploy website files into the bucket. Sources will ignore the config.js because it is in the gitignore
         website_deployment = S3Deploy.BucketDeployment(
             self,
             "WebsiteDeployment",
