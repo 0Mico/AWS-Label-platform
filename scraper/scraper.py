@@ -151,7 +151,8 @@ def main():
     db_table = aws_ut._retrieveDynamoDBTable(os.getenv("DYNAMODB_TABLE_NAME"))    
     sqs_queue_url = aws_ut._retrieveSQSQueueUrl(os.getenv("DEDUPLICATED_JOBS_QUEUE_NAME"))
 
-    keywords = ['Backend+Developer', 'Frontend+Developer', 'Software+Engineer', 'Fullstack+Developer', 'Mobile+Developer', 'Game+Developer',
+    keywords = ['Mobile+Developer', 'Game+Developer', 'Game+Designer', 'Unity+Developer', ' Unreal+Engine+Developer',
+                'Backend+Developer', 'Frontend+Developer', 'Software+Engineer', 'Software+Engineer', 'Fullstack+Developer',
                 'Data+Analyst', 'Data+Scientist', 'Cloud+Engineer', 'Devops', 'Artificial+Intelligence', 'Python+Developer']
 
     for k in keywords:
