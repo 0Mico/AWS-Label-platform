@@ -319,7 +319,7 @@ class CdkStack(Stack):
         # Create lambda function to save labeled posts to s3 bucket
         save_labeled_posts = LAMBDA.Function(
             self,
-            "SavePostsToS3",
+            "SvaePostsToS3",
             runtime = LAMBDA.Runtime.PYTHON_3_12,
             code = LAMBDA.Code.from_asset(lambda_path),
             handler = "save-to-s3.lambda_handler",
